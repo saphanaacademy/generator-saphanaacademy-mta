@@ -34,7 +34,7 @@ module.exports = class extends Generator {
         type: "input",
         name: "APIKey",
         message: "What is your API Key for SAP API Business Hub?",
-        default: "MxCaGtLAykQFybXn3Frf2iWs1HmZyIUU",
+        default: "",
       },
       {
         type: "confirm",
