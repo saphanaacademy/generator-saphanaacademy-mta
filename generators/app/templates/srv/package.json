@@ -1,0 +1,22 @@
+{
+    "name": "<%= projectName %>-srv",
+    "dependencies": {
+        "express": "latest",
+        "body-parser": "latest",
+        "@sap/xsenv": "latest"
+<% if(authentication){ -%>
+        ,"@sap/xssec": "latest"
+        ,"passport": "latest"
+<% } -%>
+<% if(hana){ -%>
+        ,"@sap/hdbext": "latest"
+<% } -%>
+<% if(cloudsdk){ -%>
+        ,"@sap-cloud-sdk/core": "latest"
+        ,"@sap/cloud-sdk-vdm-sales-order-service": "latest"
+<% } -%>
+    },
+    "scripts": {
+        "start": "node server.js"
+    }
+}

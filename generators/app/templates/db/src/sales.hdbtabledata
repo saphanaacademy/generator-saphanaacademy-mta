@@ -1,0 +1,25 @@
+{
+    "format_version": 1,
+    "imports": [
+        {
+            "target_table": "<%= projectName %>.db::sales",
+            "source_data": {
+                "data_type": "CSV",
+                "file_name": "<%= projectName %>.db::sales.csv",
+                "has_header": true,
+                "type_config": {
+                    "delimiter": ",",
+                    "do_quote": true
+                }
+            },
+            "import_settings": {
+                "import_columns": [
+                    "id",
+                    "region",
+                    "country",
+                    "amount"
+                ]
+            }
+        }
+    ]
+}

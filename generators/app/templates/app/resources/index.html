@@ -1,0 +1,33 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Digital Partner Engineering</title>
+</head>
+
+<body>
+    <h2><%= projectName %></h2>
+    <h3>User</h3>
+    <a href="/srv/user">User</a><br />
+<% if(cloudsdk){ -%>
+    <h3>Sales Orders : S/4HANA Cloud</h3>
+    <a href="/srv/salesorders">Cloud SDK</a><br />
+<% } -%>
+<% if(hana){ -%>
+    <h3>Sales : HANA Cloud</h3>
+    <a href="/srv/sales">Node.js</a><br />
+<% if(xsjs){ -%>
+    <a href="/srvxs/index.xsjs">XSJS</a><br />
+    <a href="/srvxs/index.xsodata/sales?$format=json">XSOData</a><br />
+<% } -%>
+<% } -%>
+<% if(hana){ -%>
+    <h3>Admin</h3>
+    <a href="/srv/session">Session</a><br />
+    <a href="/srv/db">Database</a><br />
+<% } -%>
+
+</body>
+
+</html>

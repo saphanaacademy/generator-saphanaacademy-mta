@@ -1,0 +1,63 @@
+{
+  "xsappname": "<%= projectName %>",
+  "tenant-mode": "dedicated",
+<% if(authorization){ -%>
+  "scopes": [
+    {
+      "name": "$XSAPPNAME.User",
+      "description": "User"
+    },
+    {
+      "name": "$XSAPPNAME.Admin",
+      "description": "Admin"
+    }
+  ],
+  "role-templates": [
+    {
+      "name": "User",
+      "description": "User",
+      "scope-references": [
+        "$XSAPPNAME.User"
+      ]
+    },
+    {
+      "name": "Admin",
+      "description": "Admin",
+      "scope-references": [
+        "$XSAPPNAME.Admin"
+      ]
+    }
+  ],
+  "role-collections": [
+    {
+      "name": "<%= projectName %>_User",
+      "description": "<%= projectName %> User",
+      "role-template-references": [
+        "$XSAPPNAME.User"
+      ]
+    },
+    {
+      "name": "<%= projectName %>_Admin",
+      "description": "<%= projectName %> Admin",
+      "role-template-references": [
+        "$XSAPPNAME.Admin"
+      ]
+    }
+  ]
+<% }else{ -%>
+  "scopes": [
+    {
+      "name": "uaa.user",
+      "description": "Token Exchange"
+    }
+  ],
+  "role-templates": [
+    {
+      "name": "TOKEN_EXCHANGE",
+      "scope-references": [
+        "uaa.user"
+      ]
+    }
+  ]
+<% } -%>
+}

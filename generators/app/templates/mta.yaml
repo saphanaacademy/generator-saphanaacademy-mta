@@ -1,0 +1,105 @@
+ID: <%= projectName %>
+_schema-version: "3.1"
+version: 0.0.1
+parameters:
+  enable-parallel-deployments: true
+
+modules:
+<% if(hana){ -%>
+  - name: <%= projectName %>-db
+    type: hdb
+    path: db
+    parameters:
+      memory: 128M
+      disk-quota: 256M
+    requires:
+<% if(authentication){ -%>
+      - name: <%= projectName %>-uaa
+<% } -%>
+      - name: <%= projectName %>-hdi
+<% } -%>
+
+  - name: <%= projectName %>-srv
+    type: nodejs
+    path: srv
+    parameters:
+      disk-quota: 512M
+      memory: 256M
+    provides:
+      - name: srv_api
+        properties:
+          url: ${default-url}
+<% if(authentication || hana){ -%>
+    requires:
+<% } -%>
+<% if(authentication){ -%>
+      - name: <%= projectName %>-uaa
+<% } -%>
+<% if(hana){ -%>
+      - name: <%= projectName %>-hdi
+<% } -%>
+
+<% if(xsjs){ -%>
+  - name: <%= projectName %>-srvxs
+    type: nodejs
+    path: srvxs
+    parameters:
+      disk-quota: 512M
+      memory: 256M
+    provides:
+      - name: srvxs_api
+        properties:
+          url: ${default-url}
+    requires:
+<% if(authentication){ -%>
+      - name: <%= projectName %>-uaa
+<% } -%>
+      - name: <%= projectName %>-hdi
+<% } -%>
+
+  - name: <%= projectName %>-app
+    type: html5
+    path: app
+    parameters:
+      disk-quota: 512M
+      memory: 256M
+    requires:
+<% if(authentication){ -%>
+      - name: <%= projectName %>-uaa
+<% } -%>
+      - name: srv_api
+        group: destinations
+        properties:
+          name: srv
+          url: ~{url}
+<% if(authentication){ -%>
+          forwardAuthToken: true
+<% } -%>
+<% if(xsjs){ -%>
+      - name: srvxs_api
+        group: destinations
+        properties:
+          name: srvxs
+          url: ~{url}
+<% if(authentication){ -%>
+          forwardAuthToken: true
+<% } -%>
+<% } -%>
+
+<% if(authentication || hana){ -%>
+resources:
+<% } -%>
+<% if(authentication){ -%>
+  - name: <%= projectName %>-uaa
+    type: org.cloudfoundry.managed-service
+    parameters:
+      path: ./xs-security.json
+      service-plan: application
+      service: xsuaa
+<% } -%>
+<% if(hana){ -%>
+  - name: <%= projectName %>-hdi
+    type: com.sap.xs.hdi-container
+    properties:
+      hdi-container-name: ${service-name}
+<% } -%>

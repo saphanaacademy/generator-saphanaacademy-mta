@@ -1,0 +1,9 @@
+{
+    "name": "<%= projectName %>-db",
+    "dependencies": {
+        "@sap/hdi-deploy": "^3"
+    },
+    "scripts": {
+        "start": "node node_modules/@sap/hdi-deploy/deploy.js"
+    }
+}
