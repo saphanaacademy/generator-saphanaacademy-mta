@@ -16,6 +16,12 @@ const services = xsenv.getServices({
     <% } -%>
 });
 
+<% if(hana && !attributes){ -%>
+// placed before authentication - business user info from the JWT will not be set as HANA session variables (XS_)
+const hdbext = require('@sap/hdbext');
+app.use(hdbext.middleware(services.hana));
+<% } -%>
+
 <% if(authentication){ -%>
 const xssec = require('@sap/xssec');
 const passport = require('passport');
@@ -26,7 +32,8 @@ app.use(passport.authenticate('JWT', {
 }));
 <% } -%>
 
-<% if(hana){ -%>
+<% if(hana && attributes){ -%>
+// placed after authentication - business user info from the JWT will be set as HANA session variables (XS_)
 const hdbext = require('@sap/hdbext');
 app.use(hdbext.middleware(services.hana));
 <% } -%>
@@ -98,7 +105,11 @@ app.get('/srv/sales', function (req, res) {
     <% if(authorization){ -%>
     if (req.authInfo.checkScope('$XSAPPNAME.User')) {
     <% } -%>
-        req.db.exec('SELECT * FROM "<%= projectName %>.db::sales"', function (err, results) {
+        let sql = 'SELECT * FROM "<%= projectName %>.db::sales"'
+        <% if(attributes){ -%>
+        sql += ` WHERE "region" IN (SELECT * FROM JSON_TABLE((('{"values":' || SESSION_CONTEXT('XS_REGION')) || '}'), '$.values[*]' COLUMNS("VALUE" VARCHAR(5000) PATH '$')))`;
+        <% } -%>
+        req.db.exec(sql, function (err, results) {
             if (err) {
                 res.type('text/plain').status(500).send('ERROR: ' + err.toString());
                 return;

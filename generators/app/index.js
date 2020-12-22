@@ -31,6 +31,7 @@ module.exports = class extends Generator {
         default: true
       },
       {
+        when: response => response.cloudsdk === true,
         type: "input",
         name: "APIKey",
         message: "What is your API Key for SAP API Business Hub?",
@@ -43,9 +44,10 @@ module.exports = class extends Generator {
         default: true
       },
       {
+        when: response => response.hana === true,
         type: "confirm",
         name: "xsjs",
-        message: "Would you like to use the XSJS Compatibility Layer (implies SAP HANA)?",
+        message: "Would you like to use the XSJS Compatibility Layer?",
         default: true
       },
       {
@@ -55,10 +57,18 @@ module.exports = class extends Generator {
         default: true
       },
       {
+        when: response => response.authentication === true,
         type: "confirm",
         name: "authorization",
-        message: "Would you like authorization (implies authentication)?",
+        message: "Would you like authorization?",
         default: true
+      },
+      {
+        when: response => response.hana === true && response.authentication === true && response.authorization === true,
+        type: "confirm",
+        name: "attributes",
+        message: "Would you like role attributes?",
+        default: false
       },
       {
         type: "confirm",
@@ -70,11 +80,17 @@ module.exports = class extends Generator {
       if (answers.newDir) {
         this.destinationRoot(`${answers.projectName}`);
       }
-      if (answers.authorization) {
-        answers.authentication = true;
+      if (answers.cloudsdk === false) {
+        answers.APIKey = false;
       }
-      if (answers.xsjs) {
-        answers.hana = true;
+      if (answers.hana === false) {
+        answers.xsjs = false;
+      }
+      if (answers.authentication === false) {
+        answers.authorization = false;
+      }
+      if (answers.hana === false || answers.authentication === false || answers.authorization === false) {
+        answers.attributes = false;
       }
       this.config.set(answers);
     });

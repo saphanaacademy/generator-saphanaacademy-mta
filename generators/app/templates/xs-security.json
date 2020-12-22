@@ -12,10 +12,26 @@
       "description": "Admin"
     }
   ],
+<% if(attributes){ -%>
+  "attributes": [
+    {
+        "name": "Region",
+        "description": "Region",
+        "valueType": "string"
+    }
+  ],
+<% } -%>
   "role-templates": [
     {
       "name": "User",
       "description": "User",
+<% if(attributes){ -%>
+      "attribute-references": [
+        {
+            "name": "Region"
+        }
+      ],
+<% } -%>
       "scope-references": [
         "$XSAPPNAME.User"
       ]
@@ -29,6 +45,7 @@
     }
   ],
   "role-collections": [
+<% if(!attributes){ -%>
     {
       "name": "<%= projectName %>_User",
       "description": "<%= projectName %> User",
@@ -36,6 +53,7 @@
         "$XSAPPNAME.User"
       ]
     },
+<% } -%>
     {
       "name": "<%= projectName %>_Admin",
       "description": "<%= projectName %> Admin",

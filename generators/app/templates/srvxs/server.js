@@ -5,9 +5,12 @@ xsenv.loadEnv();
 var options = {
 <% if(authentication){ -%>
 	anonymous: false,
-	xsApplicationUser: true,
 <% }else{ -%>
 	anonymous: true,
+<% } -%>
+<% if(attributes){ -%>
+	xsApplicationUser: true,
+<% }else{ -%>
 	xsApplicationUser: false,
 <% } -%>
 	redirectUrl: '/srvxs/index.xsjs'
