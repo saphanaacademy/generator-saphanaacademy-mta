@@ -105,9 +105,10 @@ app.get('/srv/sales', function (req, res) {
     <% if(authorization){ -%>
     if (req.authInfo.checkScope('$XSAPPNAME.User')) {
     <% } -%>
-        let sql = 'SELECT * FROM "<%= projectName %>.db::sales"'
         <% if(attributes){ -%>
-        sql += ` WHERE "region" IN (SELECT * FROM JSON_TABLE((('{"values":' || SESSION_CONTEXT('XS_REGION')) || '}'), '$.values[*]' COLUMNS("VALUE" VARCHAR(5000) PATH '$')))`;
+        let sql = `SELECT * FROM "<%= projectName %>.db::sales" WHERE "region" IN (SELECT * FROM JSON_TABLE((('{"values":' || SESSION_CONTEXT('XS_REGION')) || '}'), '$.values[*]' COLUMNS("VALUE" VARCHAR(5000) PATH '$')))`;
+        <% } else { -%>
+        let sql = 'SELECT * FROM "<%= projectName %>.db::sales"';
         <% } -%>
         req.db.exec(sql, function (err, results) {
             if (err) {
