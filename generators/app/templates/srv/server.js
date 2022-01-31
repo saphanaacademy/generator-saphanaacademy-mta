@@ -5,15 +5,15 @@ const bodyParser = require('body-parser');
 const xsenv = require('@sap/xsenv');
 xsenv.loadEnv();
 const services = xsenv.getServices({
-    <% if(authentication){ -%>
+<% if(authentication){ -%>
     uaa: { tag: 'xsuaa' }
-    <% } -%>
-    <% if(hana){ -%>
-    <% if(authentication){ -%>
+<% } -%>
+<% if(hana){ -%>
+<% if(authentication){ -%>
     ,
-    <% } -%>
+<% } -%>
     hana: { tag: 'hana' }
-    <% } -%>
+<% } -%>
 });
 
 <% if(hana && !attributes){ -%>
@@ -41,18 +41,18 @@ app.use(hdbext.middleware(services.hana));
 app.use(bodyParser.json());
 
 app.get('/srv/user', function (req, res) {
-    <% if(authorization){ -%>
+<% if(authorization){ -%>
     if (req.authInfo.checkScope('$XSAPPNAME.User')) {
-    <% } -%>
+<% } -%>
         res.status(200).json(req.user);
-    <% if(authorization){ -%>
+<% if(authorization){ -%>
     } else {
         res.status(403).send('Forbidden');
     }
-    <% } -%>
+<% } -%>
 });
 
-<% if(cloudsdk){ -%>
+<% if(apiS4HC){ -%>
 const {
     desc
 } = require("@sap-cloud-sdk/core");
@@ -85,31 +85,62 @@ function getSalesOrders() {
 }
 
 app.get("/srv/salesorders", function (req, res) {
-    <% if(authorization){ -%>
+<% if(authorization){ -%>
     if (req.authInfo.checkScope('$XSAPPNAME.User')) {
-    <% } -%>
+<% } -%>
         getSalesOrders()
         .then(salesOrders => {
             res.status(200).json(salesOrders);
         });
-    <% if(authorization){ -%>
+<% if(authorization){ -%>
     } else {
         res.status(403).send('Forbidden');
     }
-    <% } -%>
+<% } -%>
+});
+<% } -%>
+
+<% if(apiGraph){ -%>
+const core = require('@sap-cloud-sdk/core');
+
+app.get("/srv/graph", async function (req, res) {
+<% if(authorization){ -%>
+    if (req.authInfo.checkScope('$XSAPPNAME.User')) {
+<% } -%>
+        try {
+            let res1 = await core.executeHttpRequest(
+                {
+                    destinationName: '<%= projectName %>-graph-api',
+                    jwt: req.headers.authorization.split(" ")[1]
+                },
+                {
+                    method: 'GET',
+                    url: req.query.path || '<%= apiGraphId %>'
+                }
+            );
+            res.status(200).json(res1.data);
+        } catch (err) {
+            console.log(err.stack);
+            res.status(500).send(err.message);
+        }
+<% if(authorization){ -%>
+    } else {
+        res.status(403).send('Forbidden');
+    }
+<% } -%>
 });
 <% } -%>
 
 <% if(hana){ -%>
 app.get('/srv/sales', function (req, res) {
-    <% if(authorization){ -%>
+<% if(authorization){ -%>
     if (req.authInfo.checkScope('$XSAPPNAME.User')) {
-    <% } -%>
-        <% if(attributes){ -%>
+<% } -%>
+<% if(attributes){ -%>
         let sql = `SELECT * FROM "<%= projectName %>.db::sales" WHERE "region" IN (SELECT * FROM JSON_TABLE((('{"values":' || SESSION_CONTEXT('XS_REGION')) || '}'), '$.values[*]' COLUMNS("VALUE" VARCHAR(5000) PATH '$')))`;
-        <% } else { -%>
+<% } else { -%>
         let sql = 'SELECT * FROM "<%= projectName %>.db::sales"';
-        <% } -%>
+<% } -%>
         req.db.exec(sql, function (err, results) {
             if (err) {
                 res.type('text/plain').status(500).send('ERROR: ' + err.toString());
@@ -117,17 +148,17 @@ app.get('/srv/sales', function (req, res) {
             }
             res.status(200).json(results);
         });
-    <% if(authorization){ -%>
+<% if(authorization){ -%>
     } else {
         res.status(403).send('Forbidden');
     }
-    <% } -%>
+<% } -%>
 });
 
 app.get('/srv/session', function (req, res) {
-    <% if(authorization){ -%>
+<% if(authorization){ -%>
     if (req.authInfo.checkScope('$XSAPPNAME.Admin')) {
-    <% } -%>
+<% } -%>
         req.db.exec('SELECT * FROM M_SESSION_CONTEXT', function (err, results) {
             if (err) {
                 res.type('text/plain').status(500).send('ERROR: ' + err.toString());
@@ -135,17 +166,17 @@ app.get('/srv/session', function (req, res) {
             }
             res.status(200).json(results);
         });
-    <% if(authorization){ -%>
+<% if(authorization){ -%>
     } else {
         res.status(403).send('Forbidden');
     }
-    <% } -%>
+<% } -%>
 });
 
 app.get('/srv/db', function (req, res) {
-    <% if(authorization){ -%>
+<% if(authorization){ -%>
     if (req.authInfo.checkScope('$XSAPPNAME.Admin')) {
-    <% } -%>
+<% } -%>
         req.db.exec('SELECT SYSTEM_ID, DATABASE_NAME, HOST, VERSION, USAGE FROM M_DATABASE', function (err, results) {
             if (err) {
                 res.type('text/plain').status(500).send('ERROR: ' + err.toString());
@@ -153,11 +184,11 @@ app.get('/srv/db', function (req, res) {
             }
             res.status(200).json(results);
         });
-    <% if(authorization){ -%>
+<% if(authorization){ -%>
     } else {
         res.status(403).send('Forbidden');
     }
-    <% } -%>
+<% } -%>
     });
 <% } -%>
 

@@ -3,23 +3,32 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Digital Partner Engineering</title>
+    <title><%= projectName %></title>
 </head>
 
 <body>
     <h2><%= projectName %></h2>
     <h3>User</h3>
     <a href="/srv/user">User</a><br />
-<% if(cloudsdk){ -%>
-    <h3>Sales Orders : S/4HANA Cloud</h3>
-    <a href="/srv/salesorders">Cloud SDK</a><br />
+<% if(apiS4HC){ -%>
+    <h3>SAP S/4HANA Cloud</h3>
+    <a href="/srv/salesorders">Sales Orders</a><br />
+<% } -%>
+<% if(apiGraph){ -%>
+    <h3>SAP Graph</h3>
+    <a href="/srv/graph">Namespaces</a><br />
+    <a href="/srv/graph?path=<%= apiGraphId %>/metadata/entities">Entities</a><br />
+    <a href="/srv/graph?path=<%= apiGraphId %>/sap.graph">sap.graph</a><br />
+    <a href="/srv/graph?path=<%= apiGraphId %>/sap.graph/Company?$top=3">Company</a><br />
+    <a href="/srv/graph?path=<%= apiGraphId %>/sap.graph/Product?$top=3">Product</a><br />
+    <a href="/srv/graph?path=<%= apiGraphId %>/sap.graph/WorkforcePerson?$top=3">WorkforcePerson</a><br />
 <% } -%>
 <% if(hana){ -%>
-    <h3>Sales : HANA Cloud</h3>
-    <a href="/srv/sales">Node.js</a><br />
+    <h3>SAP HANA Cloud</h3>
+    <a href="/srv/sales">Sales (Node.js)</a><br />
 <% if(xsjs){ -%>
-    <a href="/srvxs/index.xsjs">XSJS</a><br />
-    <a href="/srvxs/index.xsodata/sales?$format=json">XSOData</a><br />
+    <a href="/srvxs/index.xsjs">Sales (XSJS)</a><br />
+    <a href="/srvxs/index.xsodata/sales?$format=json">Sales (XSOData)</a><br />
 <% } -%>
 <% } -%>
 <% if(hana){ -%>

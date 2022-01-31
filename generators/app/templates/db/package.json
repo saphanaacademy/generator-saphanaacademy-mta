@@ -1,7 +1,7 @@
 {
     "name": "<%= projectName %>-db",
     "dependencies": {
-        "@sap/hdi-deploy": "^3"
+        "@sap/hdi-deploy": "latest"
     },
     "scripts": {
         "start": "node node_modules/@sap/hdi-deploy/deploy.js"

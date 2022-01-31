@@ -1,6 +1,7 @@
 ID: <%= projectName %>
 _schema-version: "3.1"
 version: 0.0.1
+
 parameters:
   enable-parallel-deployments: true
 
@@ -32,11 +33,14 @@ modules:
 <% if(authentication || hana){ -%>
     requires:
 <% } -%>
-<% if(authentication){ -%>
+<% if(authentication || apiGraph){ -%>
       - name: <%= projectName %>-uaa
 <% } -%>
 <% if(hana){ -%>
       - name: <%= projectName %>-hdi
+<% } -%>
+<% if(apiGraph){ -%>
+      - name: <%= projectName %>-dest
 <% } -%>
 
 <% if(xsjs){ -%>
@@ -57,7 +61,7 @@ modules:
       - name: <%= projectName %>-hdi
 <% } -%>
 
-  - name: <%= projectName %>-app
+  - name: <%= projectName %>
     type: html5
     path: app
     parameters:
@@ -86,16 +90,39 @@ modules:
 <% } -%>
 <% } -%>
 
-<% if(authentication || hana){ -%>
+<% if(authentication || hana || apiGraph){ -%>
 resources:
 <% } -%>
-<% if(authentication){ -%>
+<% if(authentication || apiGraph){ -%>
   - name: <%= projectName %>-uaa
     type: org.cloudfoundry.managed-service
     parameters:
       path: ./xs-security.json
       service-plan: application
       service: xsuaa
+<% } -%>
+<% if(apiGraph){ -%>
+  - name: <%= projectName %>-dest
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: destination
+      service-plan: lite
+      config:
+        init_data:
+          instance:
+            existing_destinations_policy: ignore
+            destinations:
+              - Name: <%= projectName %>-graph-api
+                Description: SAP Graph
+                URL: <%= apiGraphURL %>
+                URL.headers.Application-Interface-Key: <SetValueInCockpit>
+                Type: HTTP
+                ProxyType: Internet
+                Authentication: OAuth2JWTBearer
+                tokenServiceURL: <%= apiGraphTokenURL %>/oauth/token
+                clientId: <SetValueInCockpit>
+                clientSecret: <SetValueInCockpit>
+                HTML5.DynamicDestination: true
 <% } -%>
 <% if(hana){ -%>
   - name: <%= projectName %>-hdi

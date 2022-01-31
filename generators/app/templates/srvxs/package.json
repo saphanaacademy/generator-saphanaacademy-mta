@@ -4,6 +4,9 @@
         "@sap/xsenv": "latest",
         "@sap/xsjs": "latest"
     },
+    "engines": {
+        "node": "14.x"
+    },
     "scripts": {
         "start": "node server.js"
     }

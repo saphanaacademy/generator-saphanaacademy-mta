@@ -16,7 +16,7 @@ module.exports = class extends Generator {
           }
           return "Please only use alphanumeric characters for the project name.";
         },
-        default: "myapp",
+        default: "app",
       },
       {
         type: "confirm",
@@ -26,12 +26,12 @@ module.exports = class extends Generator {
       },
       {
         type: "confirm",
-        name: "cloudsdk",
-        message: "Would you like to use the Cloud SDK (S/4HANA Cloud)?",
+        name: "apiS4HC",
+        message: "Would you like to access SAP S/4HANA Cloud Sales Orders?",
         default: true
       },
       {
-        when: response => response.cloudsdk === true,
+        when: response => response.apiS4HC === true,
         type: "input",
         name: "APIKey",
         message: "What is your API Key for SAP API Business Hub?",
@@ -39,8 +39,35 @@ module.exports = class extends Generator {
       },
       {
         type: "confirm",
+        name: "apiGraph",
+        message: "Would you like to use SAP Graph?",
+        default: true
+      },
+      {
+        when: response => response.apiGraph === true,
+        type: "input",
+        name: "apiGraphURL",
+        message: "What is your SAP Graph URL?",
+        default: "https://<region>.graph.sap/api"
+      },
+      {
+        when: response => response.apiGraph === true,
+        type: "input",
+        name: "apiGraphId",
+        message: "What is your SAP Graph Business Data Graph Identifier?",
+        default: "v1"
+      },
+      {
+        when: response => response.apiGraph === true,
+        type: "input",
+        name: "apiGraphTokenURL",
+        message: "What is your SAP Graph Token URL?",
+        default: "https://<subdomain>.authentication.<region>.hana.ondemand.com"
+      },
+      {
+        type: "confirm",
         name: "hana",
-        message: "Would you like to use SAP HANA?",
+        message: "Would you like to use SAP HANA Cloud?",
         default: true
       },
       {
@@ -80,8 +107,13 @@ module.exports = class extends Generator {
       if (answers.newDir) {
         this.destinationRoot(`${answers.projectName}`);
       }
-      if (answers.cloudsdk === false) {
-        answers.APIKey = false;
+      if (answers.apiS4HC === false) {
+        answers.APIKey = "";
+      }
+      if (answers.apiGraph === false) {
+        answers.apiGraphURL = "";
+        answers.apiGraphId = "";
+        answers.apiGraphTokenURL = "";
       }
       if (answers.hana === false) {
         answers.xsjs = false;
@@ -110,7 +142,7 @@ module.exports = class extends Generator {
         if (!(file.includes('.DS_Store'))) {
           if (!(file.substring(0, 3) === 'db/' && answers.get('hana') === false)) {
             if (!(file.substring(0, 6) === 'srvxs/' && answers.get('xsjs') === false)) {
-              if (!(file === 'xs-security.json' && answers.get('authentication') === false)) {
+              if (!(file === 'xs-security.json' && (answers.get('authentication') === false && answers.get('apiGraph') === false))) {
                 const sOrigin = this.templatePath(file);
                 const sTarget = this.destinationPath(file);
                 this.fs.copyTpl(sOrigin, sTarget, this.config.getAll());
