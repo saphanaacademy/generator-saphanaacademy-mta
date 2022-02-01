@@ -30,7 +30,7 @@ modules:
       - name: srv_api
         properties:
           url: ${default-url}
-<% if(authentication || hana){ -%>
+<% if(authentication || hana || apiGraph){ -%>
     requires:
 <% } -%>
 <% if(authentication || apiGraph){ -%>

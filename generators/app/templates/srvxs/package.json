@@ -1,11 +1,11 @@
 {
     "name": "<%= projectName %>-srvxs",
+    "engines": {
+        "node": "14.x"
+    },
     "dependencies": {
         "@sap/xsenv": "latest",
         "@sap/xsjs": "latest"
-    },
-    "engines": {
-        "node": "14.x"
     },
     "scripts": {
         "start": "node server.js"

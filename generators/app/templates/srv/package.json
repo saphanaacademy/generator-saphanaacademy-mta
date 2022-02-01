@@ -1,5 +1,8 @@
 {
     "name": "<%= projectName %>-srv",
+    "engines": {
+        "node": "14.x"
+    },
     "dependencies": {
         "express": "latest",
         "body-parser": "latest",
@@ -12,7 +15,7 @@
         ,"@sap/hdbext": "latest"
 <% } -%>
 <% if(apiS4HC || apiGraph){ -%>
-        ,"@sap-cloud-sdk/core": "latest"
+        ,"@sap-cloud-sdk/core": "^1.53"
 <% } -%>
 <% if(apiS4HC){ -%>
         ,"@sap/cloud-sdk-vdm-sales-order-service": "latest"

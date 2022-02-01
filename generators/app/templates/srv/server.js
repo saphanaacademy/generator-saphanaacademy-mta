@@ -102,6 +102,9 @@ app.get("/srv/salesorders", function (req, res) {
 
 <% if(apiGraph){ -%>
 const core = require('@sap-cloud-sdk/core');
+<% if(authentication){ -%>
+const { retrieveJwt } = require('@sap-cloud-sdk/core');
+<% } -%>
 
 app.get("/srv/graph", async function (req, res) {
 <% if(authorization){ -%>
@@ -110,8 +113,11 @@ app.get("/srv/graph", async function (req, res) {
         try {
             let res1 = await core.executeHttpRequest(
                 {
-                    destinationName: '<%= projectName %>-graph-api',
-                    jwt: req.headers.authorization.split(" ")[1]
+                    destinationName: '<%= projectName %>-graph-api'
+<% if(authentication){ -%>
+                    ,
+                    jwt: retrieveJwt(req)
+<% } -%>
                 },
                 {
                     method: 'GET',
