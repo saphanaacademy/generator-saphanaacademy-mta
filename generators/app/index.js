@@ -99,6 +99,12 @@ module.exports = class extends Generator {
       },
       {
         type: "confirm",
+        name: "apiDest",
+        message: "Would you like to test the Destination service with SAP Cloud SDK?",
+        default: false
+      },
+      {
+        type: "confirm",
         name: "buildDeploy",
         message: "Would you like to build and deploy the project?",
         default: false
@@ -142,7 +148,7 @@ module.exports = class extends Generator {
         if (!(file.includes('.DS_Store'))) {
           if (!(file.substring(0, 3) === 'db/' && answers.get('hana') === false)) {
             if (!(file.substring(0, 6) === 'srvxs/' && answers.get('xsjs') === false)) {
-              if (!(file === 'xs-security.json' && (answers.get('authentication') === false && answers.get('apiGraph') === false))) {
+              if (!(file === 'xs-security.json' && (answers.get('authentication') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false))) {
                 const sOrigin = this.templatePath(file);
                 const sTarget = this.destinationPath(file);
                 this.fs.copyTpl(sOrigin, sTarget, this.config.getAll());

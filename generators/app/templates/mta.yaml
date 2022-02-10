@@ -30,17 +30,20 @@ modules:
       - name: srv_api
         properties:
           url: ${default-url}
-<% if(authentication || hana || apiGraph){ -%>
+<% if(authentication || hana || apiGraph || apiDest){ -%>
     requires:
 <% } -%>
-<% if(authentication || apiGraph){ -%>
+<% if(authentication || apiGraph || apiDest){ -%>
       - name: <%= projectName %>-uaa
 <% } -%>
 <% if(hana){ -%>
       - name: <%= projectName %>-hdi
 <% } -%>
-<% if(apiGraph){ -%>
+<% if(apiGraph || apiDest){ -%>
       - name: <%= projectName %>-dest
+<% } -%>
+<% if(apiDest){ -%>
+      - name: <%= projectName %>-conn
 <% } -%>
 
 <% if(xsjs){ -%>
@@ -90,10 +93,10 @@ modules:
 <% } -%>
 <% } -%>
 
-<% if(authentication || hana || apiGraph){ -%>
+<% if(authentication || hana || apiGraph || apiDest){ -%>
 resources:
 <% } -%>
-<% if(authentication || apiGraph){ -%>
+<% if(authentication || apiGraph || apiDest){ -%>
   - name: <%= projectName %>-uaa
     type: org.cloudfoundry.managed-service
     parameters:
@@ -101,7 +104,7 @@ resources:
       service-plan: application
       service: xsuaa
 <% } -%>
-<% if(apiGraph){ -%>
+<% if(apiGraph || apiDest){ -%>
   - name: <%= projectName %>-dest
     type: org.cloudfoundry.managed-service
     parameters:
@@ -112,6 +115,7 @@ resources:
           instance:
             existing_destinations_policy: ignore
             destinations:
+<% if(apiGraph){ -%>
               - Name: <%= projectName %>-graph-api
                 Description: SAP Graph
                 URL: <%= apiGraphURL %>
@@ -128,9 +132,25 @@ resources:
                 clientSecret: <SetValueInCockpit>
                 HTML5.DynamicDestination: true
 <% } -%>
+<% if(apiDest){ -%>
+              - Name: <%= projectName %>-nw
+                Description: Northwind
+                URL: https://services.odata.org/v2/Northwind/Northwind.svc
+                Type: HTTP
+                ProxyType: Internet
+                Authentication: NoAuthentication
+<% } -%>
+<% } -%>
 <% if(hana){ -%>
   - name: <%= projectName %>-hdi
     type: com.sap.xs.hdi-container
     properties:
       hdi-container-name: ${service-name}
+<% } -%>
+<% if(apiDest){ -%>
+  - name: <%= projectName %>-conn
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: connectivity
+      service-plan: lite
 <% } -%>

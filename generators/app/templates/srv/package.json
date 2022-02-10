@@ -14,7 +14,7 @@
 <% if(hana){ -%>
         ,"@sap/hdbext": "latest"
 <% } -%>
-<% if(apiS4HC || apiGraph){ -%>
+<% if(apiS4HC || apiGraph || apiDest){ -%>
         ,"@sap-cloud-sdk/core": "^1.53"
 <% } -%>
 <% if(apiS4HC){ -%>

@@ -100,12 +100,14 @@ app.get("/srv/salesorders", function (req, res) {
 });
 <% } -%>
 
-<% if(apiGraph){ -%>
+<% if(apiGraph || apiDest){ -%>
 const core = require('@sap-cloud-sdk/core');
 <% if(authentication){ -%>
 const { retrieveJwt } = require('@sap-cloud-sdk/core');
 <% } -%>
+<% } -%>
 
+<% if(apiGraph){ -%>
 app.get("/srv/graph", async function (req, res) {
 <% if(authorization){ -%>
     if (req.authInfo.checkScope('$XSAPPNAME.User')) {
@@ -122,6 +124,38 @@ app.get("/srv/graph", async function (req, res) {
                 {
                     method: 'GET',
                     url: req.query.path || '<%= apiGraphId %>'
+                }
+            );
+            res.status(200).json(res1.data);
+        } catch (err) {
+            console.log(err.stack);
+            res.status(500).send(err.message);
+        }
+<% if(authorization){ -%>
+    } else {
+        res.status(403).send('Forbidden');
+    }
+<% } -%>
+});
+<% } -%>
+
+<% if(apiDest){ -%>
+app.get("/srv/dest", async function (req, res) {
+<% if(authorization){ -%>
+    if (req.authInfo.checkScope('$XSAPPNAME.User')) {
+<% } -%>
+        try {
+            let res1 = await core.executeHttpRequest(
+                {
+                    destinationName: req.query.destination || '<%= projectName %>-nw'
+<% if(authentication){ -%>
+                    ,
+                    jwt: retrieveJwt(req)
+<% } -%>
+                },
+                {
+                    method: 'GET',
+                    url: req.query.path || ''
                 }
             );
             res.status(200).json(res1.data);

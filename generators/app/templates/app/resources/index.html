@@ -23,6 +23,10 @@
     <a href="/srv/graph?path=<%= apiGraphId %>/sap.graph/Product?$top=3">Product</a><br />
     <a href="/srv/graph?path=<%= apiGraphId %>/sap.graph/WorkforcePerson?$top=3">WorkforcePerson</a><br />
 <% } -%>
+<% if(apiDest){ -%>
+    <h3>Destinations</h3>
+    <a href="/srv/dest?destination=<%= projectName %>-nw&path=Customers?$top=1">Customers (Northwind)</a><br />
+<% } -%>
 <% if(hana){ -%>
     <h3>SAP HANA Cloud</h3>
     <a href="/srv/sales">Sales (Node.js)</a><br />
