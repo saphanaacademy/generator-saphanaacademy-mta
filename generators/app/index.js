@@ -27,15 +27,8 @@ module.exports = class extends Generator {
       {
         type: "confirm",
         name: "apiS4HC",
-        message: "Would you like to access SAP S/4HANA Cloud Sales Orders?",
+        message: "Would you like to access the SAP S/4HANA Cloud Sales Orders API?",
         default: true
-      },
-      {
-        when: response => response.apiS4HC === true,
-        type: "input",
-        name: "APIKey",
-        message: "What is your API Key for SAP API Business Hub?",
-        default: "",
       },
       {
         type: "confirm",
@@ -63,6 +56,19 @@ module.exports = class extends Generator {
         name: "apiGraphTokenURL",
         message: "What is your SAP Graph Token URL?",
         default: "https://<subdomain>.authentication.<region>.hana.ondemand.com"
+      },
+      {
+        type: "confirm",
+        name: "apiDest",
+        message: "Would you like to test the Destination service with SAP Cloud SDK?",
+        default: false
+      },
+      {
+        when: response => response.apiGraph === true || response.apiDest === true,
+        type: "confirm",
+        name: "connectivity",
+        message: "Will you be accessing on-premise systems via the Cloud Connector?",
+        default: false
       },
       {
         type: "confirm",
@@ -98,10 +104,11 @@ module.exports = class extends Generator {
         default: false
       },
       {
+        when: response => response.authentication === true && response.apiGraph === true,
         type: "confirm",
-        name: "apiDest",
-        message: "Would you like to test the Destination service with SAP Cloud SDK?",
-        default: false
+        name: "apiGraphSameSubaccount",
+        message: "Will you be deploying to the subaccount of the SAP Graph service instance?",
+        default: true
       },
       {
         type: "confirm",
@@ -113,22 +120,24 @@ module.exports = class extends Generator {
       if (answers.newDir) {
         this.destinationRoot(`${answers.projectName}`);
       }
-      if (answers.apiS4HC === false) {
-        answers.APIKey = "";
-      }
       if (answers.apiGraph === false) {
         answers.apiGraphURL = "";
         answers.apiGraphId = "";
         answers.apiGraphTokenURL = "";
+        answers.apiGraphSameSubaccount = false;
       }
       if (answers.hana === false) {
         answers.xsjs = false;
       }
       if (answers.authentication === false) {
         answers.authorization = false;
+        answers.apiGraphSameSubaccount = false;
       }
       if (answers.hana === false || answers.authentication === false || answers.authorization === false) {
         answers.attributes = false;
+      }
+      if (!(answers.apiGraph === true || answers.apiDest === true)) {
+        answers.connectivity = false;
       }
       this.config.set(answers);
     });
@@ -178,6 +187,10 @@ module.exports = class extends Generator {
   }
 
   end() {
+    this.log("");
+    if (this.config.get('authentication') && this.config.get('apiGraph') && this.config.get('apiGraphSameSubaccount') === false) {
+      this.log("Important: Trust needs to be configured when not deploying to the subaccount of the SAP Graph service instance!");
+    }
     this.log("");
   }
 };

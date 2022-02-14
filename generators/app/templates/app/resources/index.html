@@ -8,8 +8,12 @@
 
 <body>
     <h2><%= projectName %></h2>
+    <h3>Home</h3>
+    <a href="/srv/">Home</a><br />
+<% if(authentication){ -%>
     <h3>User</h3>
     <a href="/srv/user">User</a><br />
+<% } -%>
 <% if(apiS4HC){ -%>
     <h3>SAP S/4HANA Cloud</h3>
     <a href="/srv/salesorders">Sales Orders</a><br />

@@ -30,19 +30,19 @@ modules:
       - name: srv_api
         properties:
           url: ${default-url}
-<% if(authentication || hana || apiGraph || apiDest){ -%>
+<% if(authentication || apiS4HC || hana || apiGraph || apiDest || connectivity){ -%>
     requires:
 <% } -%>
-<% if(authentication || apiGraph || apiDest){ -%>
+<% if(authentication || apiS4HC || apiGraph || apiDest){ -%>
       - name: <%= projectName %>-uaa
 <% } -%>
 <% if(hana){ -%>
       - name: <%= projectName %>-hdi
 <% } -%>
-<% if(apiGraph || apiDest){ -%>
+<% if(apiS4HC || apiGraph || apiDest){ -%>
       - name: <%= projectName %>-dest
 <% } -%>
-<% if(apiDest){ -%>
+<% if(connectivity){ -%>
       - name: <%= projectName %>-conn
 <% } -%>
 
@@ -93,10 +93,10 @@ modules:
 <% } -%>
 <% } -%>
 
-<% if(authentication || hana || apiGraph || apiDest){ -%>
+<% if(authentication || hana || apiS4HC || apiGraph || apiDest){ -%>
 resources:
 <% } -%>
-<% if(authentication || apiGraph || apiDest){ -%>
+<% if(authentication || apiS4HC || apiGraph || apiDest){ -%>
   - name: <%= projectName %>-uaa
     type: org.cloudfoundry.managed-service
     parameters:
@@ -104,7 +104,7 @@ resources:
       service-plan: application
       service: xsuaa
 <% } -%>
-<% if(apiGraph || apiDest){ -%>
+<% if(apiS4HC || apiGraph || apiDest){ -%>
   - name: <%= projectName %>-dest
     type: org.cloudfoundry.managed-service
     parameters:
@@ -115,21 +115,47 @@ resources:
           instance:
             existing_destinations_policy: ignore
             destinations:
+<% if(apiS4HC){ -%>
+              - Name: <%= projectName %>-s4hc-api
+                Description: S/4HANA Cloud
+                URL: https://sandbox.api.sap.com/s4hanacloud
+                Type: HTTP
+                ProxyType: Internet
+                Authentication: NoAuthentication
+                URL.headers.APIKey: <SetValueInCockpit>
+                URL.headers.Application-Interface-Key: <SetValueInCockpit>
+<% } -%>
 <% if(apiGraph){ -%>
               - Name: <%= projectName %>-graph-api
                 Description: SAP Graph
                 URL: <%= apiGraphURL %>
-                URL.headers.Application-Interface-Key: <SetValueInCockpit>
                 Type: HTTP
                 ProxyType: Internet
 <% if(authentication){ -%>
+<% if(apiGraphSameSubaccount){ -%>
                 Authentication: OAuth2JWTBearer
-<% }else{ -%>
-                Authentication: OAuth2ClientCredentials
-<% } -%>
                 tokenServiceURL: <%= apiGraphTokenURL %>/oauth/token
                 clientId: <SetValueInCockpit>
                 clientSecret: <SetValueInCockpit>
+<% }else{ -%>
+                Authentication: OAuth2SAMLBearerAssertion
+                audience: <%= apiGraphTokenURL %>
+                authnContextClassRef: urn:oasis:names:tc:SAML:2.0:ac:classes:PreviousSession
+                clientKey: <SetValueInCockpit>
+                tokenServiceURL: <%= apiGraphTokenURL %>/oauth/token/alias/<SetValueInCockpit>
+                tokenServiceUser: <SetValueInCockpit>
+                tokenServicePassword: <SetValueInCockpit>
+                nameIdFormat: urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress
+                userIdSource: email
+<% } -%>
+<% }else{ -%>
+                Authentication: OAuth2ClientCredentials
+                tokenServiceURL: <%= apiGraphTokenURL %>/oauth/token
+                clientId: <SetValueInCockpit>
+                clientSecret: <SetValueInCockpit>
+<% } -%>
+                tokenServiceURLType: Dedicated
+                URL.headers.Application-Interface-Key: <SetValueInCockpit>
                 HTML5.DynamicDestination: true
 <% } -%>
 <% if(apiDest){ -%>
@@ -147,7 +173,7 @@ resources:
     properties:
       hdi-container-name: ${service-name}
 <% } -%>
-<% if(apiDest){ -%>
+<% if(connectivity){ -%>
   - name: <%= projectName %>-conn
     type: org.cloudfoundry.managed-service
     parameters:

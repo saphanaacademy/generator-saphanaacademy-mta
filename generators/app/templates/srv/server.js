@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 
 const xsenv = require('@sap/xsenv');
 xsenv.loadEnv();
+<% if(authentication || hana){ -%>
 const services = xsenv.getServices({
 <% if(authentication){ -%>
     uaa: { tag: 'xsuaa' }
@@ -15,6 +16,7 @@ const services = xsenv.getServices({
     hana: { tag: 'hana' }
 <% } -%>
 });
+<% } -%>
 
 <% if(hana && !attributes){ -%>
 // placed before authentication - business user info from the JWT will not be set as HANA session variables (XS_)
@@ -40,6 +42,19 @@ app.use(hdbext.middleware(services.hana));
 
 app.use(bodyParser.json());
 
+app.get('/srv', function (req, res) {
+<% if(authorization){ -%>
+    if (req.authInfo.checkScope('$XSAPPNAME.User')) {
+<% } -%>
+        res.status(200).send('<%= projectName %>');
+<% if(authorization){ -%>
+    } else {
+        res.status(403).send('Forbidden');
+    }
+<% } -%>
+});
+
+<% if(authentication){ -%>
 app.get('/srv/user', function (req, res) {
 <% if(authorization){ -%>
     if (req.authInfo.checkScope('$XSAPPNAME.User')) {
@@ -51,44 +66,46 @@ app.get('/srv/user', function (req, res) {
     }
 <% } -%>
 });
+<% } -%>
 
+<% if(apiGraph || apiDest){ -%>
+const core = require('@sap-cloud-sdk/core');
+<% } -%>
+<% if(apiS4HC || apiGraph || apiDest){ -%>
+const { retrieveJwt } = require('@sap-cloud-sdk/core');
+<% } -%>
 <% if(apiS4HC){ -%>
-const {
-    desc
-} = require("@sap-cloud-sdk/core");
+const { desc } = require('@sap-cloud-sdk/core');
+const { salesOrderService } = require('@sap/cloud-sdk-vdm-sales-order-service');
+const { salesOrderApi, salesOrderItemApi } = salesOrderService();
 
-const {
-    SalesOrder,
-    SalesOrderItem
-} = require("@sap/cloud-sdk-vdm-sales-order-service");
-
-function getSalesOrders() {
-    return SalesOrder.requestBuilder()
+function getSalesOrders(req) {
+    return salesOrderApi.requestBuilder()
         .getAll()
-        .filter(SalesOrder.TOTAL_NET_AMOUNT.greaterThan(2000))
+        .filter(salesOrderApi.schema.TOTAL_NET_AMOUNT.greaterThan(2000))
         .top(3)
-        .orderBy(new desc(SalesOrder.LAST_CHANGE_DATE_TIME))
+        .orderBy(new desc(salesOrderApi.schema.LAST_CHANGE_DATE_TIME))
         .select(
-            SalesOrder.SALES_ORDER,
-            SalesOrder.LAST_CHANGE_DATE_TIME,
-            SalesOrder.INCOTERMS_LOCATION_1,
-            SalesOrder.TOTAL_NET_AMOUNT,
-            SalesOrder.TO_ITEM.select(SalesOrderItem.MATERIAL, SalesOrderItem.NET_AMOUNT)
+            salesOrderApi.schema.SALES_ORDER,
+            salesOrderApi.schema.LAST_CHANGE_DATE_TIME,
+            salesOrderApi.schema.INCOTERMS_LOCATION_1,
+            salesOrderApi.schema.TOTAL_NET_AMOUNT,
+            salesOrderApi.schema.TO_ITEM.select(salesOrderItemApi.schema.MATERIAL, salesOrderItemApi.schema.NET_AMOUNT)
         )
-        .withCustomHeaders({
-            'APIKey': '<%= APIKey %>'
-        })
         .execute({
-            url: 'https://sandbox.api.sap.com/s4hanacloud'
-            //destinationName: ''
+            destinationName: '<%= projectName %>-s4hc-api'
+<% if(authentication){ -%>
+            ,
+            jwt: retrieveJwt(req)
+<% } -%>
         });
 }
 
-app.get("/srv/salesorders", function (req, res) {
+app.get('/srv/salesorders', function (req, res) {
 <% if(authorization){ -%>
     if (req.authInfo.checkScope('$XSAPPNAME.User')) {
 <% } -%>
-        getSalesOrders()
+        getSalesOrders(req)
         .then(salesOrders => {
             res.status(200).json(salesOrders);
         });
@@ -100,15 +117,8 @@ app.get("/srv/salesorders", function (req, res) {
 });
 <% } -%>
 
-<% if(apiGraph || apiDest){ -%>
-const core = require('@sap-cloud-sdk/core');
-<% if(authentication){ -%>
-const { retrieveJwt } = require('@sap-cloud-sdk/core');
-<% } -%>
-<% } -%>
-
 <% if(apiGraph){ -%>
-app.get("/srv/graph", async function (req, res) {
+app.get('/srv/graph', async function (req, res) {
 <% if(authorization){ -%>
     if (req.authInfo.checkScope('$XSAPPNAME.User')) {
 <% } -%>
@@ -140,7 +150,7 @@ app.get("/srv/graph", async function (req, res) {
 <% } -%>
 
 <% if(apiDest){ -%>
-app.get("/srv/dest", async function (req, res) {
+app.get('/srv/dest', async function (req, res) {
 <% if(authorization){ -%>
     if (req.authInfo.checkScope('$XSAPPNAME.User')) {
 <% } -%>

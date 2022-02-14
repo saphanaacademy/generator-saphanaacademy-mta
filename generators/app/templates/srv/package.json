@@ -15,7 +15,7 @@
         ,"@sap/hdbext": "latest"
 <% } -%>
 <% if(apiS4HC || apiGraph || apiDest){ -%>
-        ,"@sap-cloud-sdk/core": "^1.53"
+        ,"@sap-cloud-sdk/core": "latest"
 <% } -%>
 <% if(apiS4HC){ -%>
         ,"@sap/cloud-sdk-vdm-sales-order-service": "latest"
