@@ -17,6 +17,12 @@ If using SAP HANA Cloud ensure you have an instance in the space where you'll be
 
 Ensure that you are logged in to the Cloud Foundry CLI and are targeting the org and space into which you want to deploy the project.
 
+To generate your new project:
+```bash
+yo saphanaacademy-mta
+```
+NB: If you prefer a rich user experience when generating your projects consider the [Application Wizard](https://marketplace.visualstudio.com/items?itemName=SAPOS.yeoman-ui).
+
 ## SAP BTP, Kyma runtime
 We assume you have pre-installed [node.js](https://nodejs.org/), Docker [Desktop](https://www.docker.com/products/docker-desktop) and have a [Docker Hub](https://hub.docker.com/) ID. The Kubernetes command-line tool [kubectl](https://kubernetes.io/docs/tasks/tools/) is required with the [kubelogin](https://github.com/int128/kubelogin) extension. In order to build the project ensure that GNU [Make](https://www.gnu.org/software/make) is installed. In order to deploy the project ensure that [Helm](https://helm.sh/docs/intro/install) is installed.
 
