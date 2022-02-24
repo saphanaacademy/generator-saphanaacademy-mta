@@ -1,0 +1,62 @@
+apiVersion: servicecatalog.k8s.io/v1beta1
+kind: ServiceInstance
+metadata:
+  name: {{ .Values.services.dest.name }}
+spec:
+  clusterServiceClassExternalName: destination
+  clusterServicePlanExternalName: lite
+  parameters:
+    init_data:
+      instance:
+        existing_destinations_policy: update
+        destinations:
+<% if(apiS4HC){ -%>
+          - Name: <%= projectName %>-s4hc-api
+            Description: S/4HANA Cloud
+            URL: https://sandbox.api.sap.com/s4hanacloud
+            Type: HTTP
+            ProxyType: Internet
+            Authentication: NoAuthentication
+            URL.headers.APIKey: {{ .Values.services.dest.APIKey }}
+            URL.headers.Application-Interface-Key: {{ .Values.services.dest.ApplicationInterfaceKey }}
+<% } -%>
+<% if(apiGraph){ -%>
+          - Name: <%= projectName %>-graph-api
+            Description: SAP Graph
+            URL: <%= apiGraphURL %>
+            Type: HTTP
+            ProxyType: Internet
+<% if(authentication){ -%>
+<% if(apiGraphSameSubaccount){ -%>
+            Authentication: OAuth2JWTBearer
+            tokenServiceURL: <%= apiGraphTokenURL %>/oauth/token
+            clientId: {{ .Values.services.dest.graph.clientId }}
+            clientSecret: {{ .Values.services.dest.graph.clientSecret }}
+<% }else{ -%>
+            Authentication: OAuth2SAMLBearerAssertion
+            audience: <%= apiGraphTokenURL %>
+            authnContextClassRef: urn:oasis:names:tc:SAML:2.0:ac:classes:PreviousSession
+            clientKey: {{ .Values.services.dest.graph.clientId }}
+            tokenServiceURL: <%= apiGraphTokenURL %>/oauth/token/alias/{{ .Values.services.dest.graph.alias }}
+            tokenServiceUser: {{ .Values.services.dest.graph.clientId }}
+            tokenServicePassword: {{ .Values.services.dest.graph.clientSecret }}
+            nameIdFormat: urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress
+            userIdSource: email
+<% } -%>
+<% }else{ -%>
+            Authentication: OAuth2ClientCredentials
+            tokenServiceURL: <%= apiGraphTokenURL %>/oauth/token
+            clientId: {{ .Values.services.dest.graph.clientId }}
+            clientSecret: {{ .Values.services.dest.graph.clientSecret }}
+<% } -%>
+            tokenServiceURLType: Dedicated
+            URL.headers.Application-Interface-Key: {{ .Values.services.dest.ApplicationInterfaceKey }}
+<% } -%>
+<% if(apiDest){ -%>
+          - Name: <%= projectName %>-nw
+            Description: Northwind
+            URL: https://services.odata.org/v2/Northwind/Northwind.svc
+            Type: HTTP
+            ProxyType: Internet
+            Authentication: NoAuthentication
+<% } -%>

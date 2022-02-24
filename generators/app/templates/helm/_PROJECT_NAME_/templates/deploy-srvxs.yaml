@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.services.srvxs.name }}
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+    app: {{ .Values.services.srvxs.name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.services.srvxs.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.services.srvxs.name }}
+    spec:
+      containers:
+        - image: "{{ .Values.dockerID }}/{{ .Values.services.srvxs.image.repository }}:{{ .Values.services.srvxs.image.tag }}"
+          name: {{ .Values.services.srvxs.name }}
+          imagePullPolicy: {{ .Values.services.srvxs.image.pullPolicy }}
+          resources:
+            limits:
+              memory: 512Mi
+              cpu: "1"
+            requests:
+              memory: 256Mi
+              cpu: "0.2"
+          ports:
+            - name: http
+              containerPort: {{ .Values.services.srvxs.image.port }}
+          volumeMounts:
+<% if(authentication){ -%>
+            - name: <%= projectName %>-uaa
+              mountPath: "/etc/secrets/sapcp/xsuaa/<%= projectName %>-uaa"
+              readOnly: true
+<% } -%>
+            - name: <%= projectName %>-hdi
+              mountPath: "/etc/secrets/sapcp/hana/<%= projectName %>-hdi"
+              readOnly: true
+      imagePullSecrets:
+        - name: {{ .Values.services.srvxs.image.imagePullSecretName }}
+      volumes:
+<% if(authentication){ -%>
+        - name: <%= projectName %>-uaa
+          secret:
+            secretName: {{ .Values.services.uaa.bindingSecretName }}
+<% } -%>
+        - name: <%= projectName %>-hdi
+          secret:
+            secretName: {{ .Values.services.hdi.bindingSecretName }}

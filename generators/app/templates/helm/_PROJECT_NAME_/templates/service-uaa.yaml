@@ -1,0 +1,61 @@
+apiVersion: servicecatalog.k8s.io/v1beta1
+kind: ServiceInstance
+metadata:
+  name: {{ .Values.services.uaa.name }}
+spec:
+  clusterServiceClassExternalName: xsuaa
+  clusterServicePlanExternalName: application
+  parameters:
+    xsappname: {{ .Values.app.name }}
+    tenant-mode: dedicated
+<% if(authorization){ -%>
+    scopes:
+      - name: $XSAPPNAME.User
+        description: User
+      - name: $XSAPPNAME.Admin
+        description: Admin
+<% if(attributes){ -%>
+    attributes:
+      - name: Region
+        description: Region
+        valueType: string
+<% } -%>
+    role-templates:
+      - name: User
+        description: User
+<% if(attributes){ -%>
+        attribute-references:
+          - name: Region
+<% } -%>
+        scope-references:
+          - $XSAPPNAME.User
+      - name: Admin
+        description: Admin
+        scope-references:
+          - $XSAPPNAME.Admin
+    role-collections:
+<% if(!attributes){ -%>
+      - name: {{ .Values.app.name }}_User
+        description: {{ .Values.app.name }} User
+        role-template-references:
+          - $XSAPPNAME.User
+<% } -%>
+      - name: {{ .Values.app.name }}_Admin
+        description: {{ .Values.app.name }} Admin
+        role-template-references:
+          - $XSAPPNAME.Admin
+<% }else{ -%>
+    scopes:
+      - name: uaa.user
+        description: Token Exchange
+    role-templates:
+      - name: TOKEN_EXCHANGE
+        description: User
+        scope-references:
+          - uaa.user
+<% } -%>
+<% if(authentication){ -%>
+    oauth2-configuration:
+      redirect-uris:
+        - https://{{ .Values.services.app.name }}.{{ .Values.clusterDomain }}/login/callback
+<% } -%>

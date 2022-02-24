@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.jobs.db.name }}
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+    app: {{ .Values.jobs.db.name }}
+spec:
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.jobs.db.name }}
+      annotations:
+        sidecar.istio.io/inject: "false"
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - image: "{{ .Values.dockerID }}/{{ .Values.jobs.db.image.repository }}:{{ .Values.jobs.db.image.tag }}"
+          name: {{ .Values.jobs.db.name }}
+          imagePullPolicy: {{ .Values.jobs.db.image.pullPolicy }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.jobs.db.bindingSecretName }}

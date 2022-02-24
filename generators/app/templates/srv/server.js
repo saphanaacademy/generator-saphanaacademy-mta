@@ -239,7 +239,25 @@ app.get('/srv/db', function (req, res) {
         res.status(403).send('Forbidden');
     }
 <% } -%>
-    });
+});
+
+app.get('/srv/connections', function (req, res) {
+<% if(authorization){ -%>
+    if (req.authInfo.checkScope('$XSAPPNAME.Admin')) {
+<% } -%>
+        req.db.exec(`SELECT TOP 10 USER_NAME, CLIENT_IP, CLIENT_HOST, START_TIME FROM M_CONNECTIONS WHERE OWN='TRUE' ORDER BY START_TIME DESC`, function (err, results) {
+            if (err) {
+                res.type('text/plain').status(500).send('ERROR: ' + err.toString());
+                return;
+            }
+            res.status(200).json(results);
+        });
+<% if(authorization){ -%>
+    } else {
+        res.status(403).send('Forbidden');
+    }
+<% } -%>
+});
 <% } -%>
 
 const port = process.env.PORT || 5001;

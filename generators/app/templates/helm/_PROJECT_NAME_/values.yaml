@@ -1,0 +1,82 @@
+dockerID: <%= dockerID %>
+<% if(authentication){ -%>
+clusterDomain: <%= clusterDomain %>
+<% } -%>
+app:
+  name: <%= projectName %>
+<% if(hana){ -%>
+jobs:
+  db:
+    name: <%= projectName %>-db
+    bindingSecretName: <%= projectName %>-db-binding-secret
+    image:
+      repository: <%= projectName %>-db
+      tag: "latest"
+      pullPolicy: Always
+      imagePullSecretName: docker-config
+<% } -%>
+services:
+  app:
+    name: <%= projectName %>
+    image:
+      repository: <%= projectName %>
+      tag: "latest"
+      pullPolicy: Always
+      imagePullSecretName: docker-config
+      port: 5000
+    service:
+      port: 5000
+  srv:
+    name: <%= projectName %>-srv
+    image:
+      repository: <%= projectName %>-srv
+      tag: "latest"
+      pullPolicy: Always
+      imagePullSecretName: docker-config
+      port: 5001
+    service:
+      port: 5001
+<% if(xsjs){ -%>
+  srvxs:
+    name: <%= projectName %>-srvxs
+    image:
+      repository: <%= projectName %>-srvxs
+      tag: "latest"
+      pullPolicy: Always
+      imagePullSecretName: docker-config
+      port: 5002
+    service:
+      port: 5002
+<% } -%>
+<% if(authentication || apiS4HC || apiGraph || apiDest){ -%>
+  uaa:
+    name: <%= projectName %>-uaa
+    bindingName: <%= projectName %>-uaa-binding
+    bindingSecretName: <%= projectName %>-uaa-binding-secret
+<% } -%>
+<% if(apiS4HC || apiGraph || apiDest){ -%>
+  dest:
+    name: <%= projectName %>-dest
+    bindingName: <%= projectName %>-dest-binding
+    bindingSecretName: <%= projectName %>-dest-binding-secret
+<% if(apiS4HC || apiGraph){ -%>
+    ApplicationInterfaceKey: <SetValue>
+<% if(apiS4HC){ -%>
+    APIKey: <SetValue>
+<% } -%>
+<% if(apiGraph){ -%>
+    graph:
+      clientId: <SetValue>
+      clientSecret: <SetValue>
+<% if(!apiGraphSameSubaccount){ -%>
+      alias: <SetValue>
+<% } -%>
+<% } -%>
+<% } -%>
+<% } -%>
+<% if(hana){ -%>
+  hdi:
+    name: <%= projectName %>-hdi
+    bindingName: <%= projectName %>-hdi-binding
+    bindingSecretName: <%= projectName %>-hdi-binding-secret
+<% } -%>

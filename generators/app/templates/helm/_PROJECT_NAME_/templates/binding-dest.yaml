@@ -1,0 +1,8 @@
+apiVersion: servicecatalog.k8s.io/v1beta1
+kind: ServiceBinding
+metadata:
+  name: {{ .Values.services.dest.bindingName }}
+spec:
+  instanceRef:
+    name: {{ .Values.services.dest.name }}
+  secretName: {{ .Values.services.dest.bindingSecretName }}

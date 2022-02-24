@@ -1,5 +1,5 @@
 {
-    "name": "<%= projectName %>-app",
+    "name": "<%= projectName %>",
     "dependencies": {
         "@sap/approuter": "latest"
     },

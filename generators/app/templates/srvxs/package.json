@@ -1,8 +1,10 @@
 {
     "name": "<%= projectName %>-srvxs",
+<% if(!runtime.includes('Kyma')){ -%>
     "engines": {
         "node": "14.x"
     },
+<% } -%>
     "dependencies": {
         "@sap/xsenv": "latest",
         "@sap/xsjs": "latest"
