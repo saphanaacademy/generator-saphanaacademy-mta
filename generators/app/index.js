@@ -26,13 +26,13 @@ module.exports = class extends Generator {
       },
       {
         type: "list",
-        name: "runtime",
+        name: "BTPRuntime",
         message: "Which runtime will you be deploying the project to?",
         choices: ["SAP BTP, Cloud Foundry runtime", "SAP BTP, Kyma runtime"],
         default: ["SAP BTP, Cloud Foundry runtime"]
       },
       {
-        when: response => response.runtime.includes('Kyma'),
+        when: response => response.BTPRuntime.includes("Kyma"),
         type: "input",
         name: "dockerID",
         message: "What is your Docker ID?",
@@ -84,7 +84,7 @@ module.exports = class extends Generator {
         default: false
       },
       {
-        when: response => (response.apiGraph === true || response.apiDest === true) && response.runtime.includes('Kyma') === false,
+        when: response => (response.apiGraph === true || response.apiDest === true) && response.BTPRuntime.includes("Kyma") === false,
         type: "confirm",
         name: "connectivity",
         message: "Will you be accessing on-premise systems via the Cloud Connector?",
@@ -124,7 +124,7 @@ module.exports = class extends Generator {
         default: false
       },
       {
-        when: response => response.authentication === true && response.runtime.includes('Kyma'),
+        when: response => response.authentication === true && response.BTPRuntime.includes("Kyma"),
         type: "input",
         name: "clusterDomain",
         message: "What is the cluster domain of your SAP BTP, Kyma runtime?",
@@ -147,7 +147,7 @@ module.exports = class extends Generator {
       if (answers.newDir) {
         this.destinationRoot(`${answers.projectName}`);
       }
-      if (answers.runtime.includes('Kyma') === false) {
+      if (answers.BTPRuntime.includes("Kyma") === false) {
         answers.dockerID = "";
         answers.clusterDomain = "";
       }
@@ -168,9 +168,10 @@ module.exports = class extends Generator {
       if (answers.hana === false || answers.authentication === false || answers.authorization === false) {
         answers.attributes = false;
       }
-      if (!((answers.apiGraph === true || answers.apiDest === true) && answers.runtime.includes('Kyma') === false)) {
+      if (!((answers.apiGraph === true || answers.apiDest === true) && answers.BTPRuntime.includes("Kyma") === false)) {
         answers.connectivity = false;
       }
+      answers.destinationPath = this.destinationPath();
       this.config.set(answers);
     });
   }
@@ -189,12 +190,12 @@ module.exports = class extends Generator {
         if (!(file.includes('.DS_Store'))) {
           if (!(file.substring(0, 3) === 'db/' && answers.get('hana') === false)) {
             if (!(file.substring(0, 6) === 'srvxs/' && answers.get('xsjs') === false)) {
-              if (!((file.substring(0, 5) === 'helm/' || file.includes('Dockerfile') || file === 'Makefile') && answers.get('runtime').includes('Kyma') === false)) {
+              if (!((file.substring(0, 5) === 'helm/' || file.includes('Dockerfile') || file === 'Makefile') && answers.get('BTPRuntime').includes('Kyma') === false)) {
                 if (!((file.includes('secret-db.yaml') || file.includes('secret-hdi.yaml') || file.includes('job-db.yaml')) && answers.get('hana') === false)) {
                   if (!((file.includes('service-uaa.yaml') || file.includes('binding-uaa.yaml')) && answers.get('authentication') === false && answers.get('apiS4HC') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false)) {
                     if (!((file.includes('service-dest.yaml') || file.includes('binding-dest.yaml')) && answers.get('apiS4HC') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false)) {
                       if (!(file.includes('-srvxs.yaml') && answers.get('xsjs') === false)) {
-                        if (!((file === 'mta.yaml' || file === 'xs-security.json') && answers.get('runtime').includes('Kyma'))) {
+                        if (!((file === 'mta.yaml' || file === 'xs-security.json') && answers.get('BTPRuntime').includes('Kyma'))) {
                           if (!(file === 'xs-security.json' && (answers.get('authentication') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false))) {
                             const sOrigin = this.templatePath(file);
                             let fileDest = file;
@@ -220,10 +221,10 @@ module.exports = class extends Generator {
   install() {
     // build and deploy if requested
     var answers = this.config;
-    if (answers.get('runtime').includes('Kyma')) {
+    if (answers.get("BTPRuntime").includes("Kyma")) {
       // Kyma runtime
       if (answers.get("buildDeploy")) {
-        let opt = { "cwd": this.destinationPath() };
+        let opt = { "cwd": answers.get("destinationPath") };
         let resBuild = this.spawnCommandSync("make", ["docker-push"], opt);
         if (resBuild.status === 0) {
           this.spawnCommandSync("helm", ["install", answers.get("projectName"), " helm/" + answers.get("projectName")], opt);
@@ -240,7 +241,7 @@ module.exports = class extends Generator {
       // Cloud Foundry runtime
       var mta = "mta_archives/" + answers.get("projectName") + "_0.0.1.mtar";
       if (answers.get("buildDeploy")) {
-        let opt = { "cwd": this.destinationPath() };
+        let opt = { "cwd": answers.get("destinationPath") };
         let resBuild = this.spawnCommandSync("mbt", ["build"], opt);
         if (resBuild.status === 0) {
           this.spawnCommandSync("cf", ["deploy", mta], opt);
@@ -261,11 +262,11 @@ module.exports = class extends Generator {
     if (answers.get("authentication") && answers.get("apiGraph") && answers.get("apiGraphSameSubaccount") === false) {
       this.log("Important: Trust needs to be configured when not deploying to the subaccount of the SAP Graph service instance!");
     }
-    if (answers.get("runtime").includes('Kyma') && (answers.get("apiS4HC") || answers.get("apiGraph"))) {
+    if (answers.get("BTPRuntime").includes("Kyma") && (answers.get("apiS4HC") || answers.get("apiGraph"))) {
       this.log("");
       this.log("Don't forget to set values for API keys & credentials in helm/" + answers.get("projectName") + "/values.yaml!");
     }
-    if (answers.get("runtime").includes('Kyma') && answers.get("hana")) {
+    if (answers.get("BTPRuntime").includes("Kyma") && answers.get("hana")) {
       this.log("");
       this.log("Don't forget to set SAP HANA Cloud HDI Container credentials in helm/" + answers.get("projectName") + "/templates/secret-db.yaml & secret-hdi.yaml!");
     }

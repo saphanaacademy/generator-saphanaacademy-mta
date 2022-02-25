@@ -1,6 +1,6 @@
 {
     "name": "<%= projectName %>-srv",
-<% if(!runtime.includes('Kyma')){ -%>
+<% if(!BTPRuntime.includes("Kyma")){ -%>
     "engines": {
         "node": "14.x"
     },

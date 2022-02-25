@@ -24,11 +24,11 @@ yo saphanaacademy-mta
 NB: If you prefer a rich user experience when generating your projects consider the [Application Wizard](https://marketplace.visualstudio.com/items?itemName=SAPOS.yeoman-ui).
 
 ## SAP BTP, Kyma runtime
-We assume you have pre-installed [node.js](https://nodejs.org/), Docker [Desktop](https://www.docker.com/products/docker-desktop) and have a [Docker Hub](https://hub.docker.com/) ID. The Kubernetes command-line tool [kubectl](https://kubernetes.io/docs/tasks/tools/) is required with the [kubelogin](https://github.com/int128/kubelogin) extension. In order to build the project ensure that GNU [Make](https://www.gnu.org/software/make) is installed. In order to deploy the project ensure that [Helm](https://helm.sh/docs/intro/install) is installed.
+We assume you have pre-installed [node.js](https://nodejs.org/), the ability to build and push containers either via Docker [Desktop](https://www.docker.com/products/docker-desktop) or an alternative such as [podman](https://podman.io) and have a [Docker Hub](https://hub.docker.com/) ID. The Kubernetes command-line tool [kubectl](https://kubernetes.io/docs/tasks/tools/) is required with the [kubelogin](https://github.com/int128/kubelogin) extension. In order to build the project ensure that GNU [Make](https://www.gnu.org/software/make) is installed. In order to deploy the project ensure that [Helm](https://helm.sh/docs/intro/install) is installed.
 
 If using SAP HANA Cloud ensure you have created an instance, HDI Container and service key.
 
-Ensure that you are logged in with kubectl and have (optionally created and) set a default namespace into which you want to deploy the project. For example:
+Ensure that you are logged in with docker and kubectl and have (optionally created and) set a default namespace into which you want to deploy the project. For example:
 ```bash
 kubectl create ns dev
 kubectl config set-context --current --namespace=dev

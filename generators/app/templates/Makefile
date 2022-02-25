@@ -1,20 +1,21 @@
 dockerID=<%= dockerID %>
+path=<%= destinationPath %>
 
 <% if(hana){ -%>
 build-db:
-	docker build -t $(dockerID)/<%= projectName %>-db:latest -f ./srv/Dockerfile ./db
+	docker build -t $(dockerID)/<%= projectName %>-db:latest -f $(path)/srv/Dockerfile $(path)/db
 <% } -%>
 
 <% if(xsjs){ -%>
 build-srvxs:
-	docker build -t $(dockerID)/<%= projectName %>-srvxs:latest -f ./srvxs/Dockerfile ./srvxs
+	docker build -t $(dockerID)/<%= projectName %>-srvxs:latest -f $(path)/srvxs/Dockerfile $(path)/srvxs
 <% } -%>
 
 build-srv:
-	docker build -t $(dockerID)/<%= projectName %>-srv:latest -f ./srv/Dockerfile ./srv
+	docker build -t $(dockerID)/<%= projectName %>-srv:latest -f $(path)/srv/Dockerfile $(path)/srv
 
 build-app:
-	docker build -t $(dockerID)/<%= projectName %>:latest -f ./app/Dockerfile ./app
+	docker build -t $(dockerID)/<%= projectName %>:latest -f $(path)/app/Dockerfile $(path)/app
 
 docker-push: <% if(hana){ -%>build-db<% } -%> <% if(xsjs){ -%>build-srvxs<% } -%> build-srv build-app
 <% if(hana){ -%>
