@@ -1,0 +1,10 @@
+dockerID: <%= dockerID %>
+jobs:
+  db:
+    name: <%= projectName %>-db
+    bindingSecretName: <%= projectName %>-db-binding-secret
+    image:
+      repository: <%= projectName %>-db
+      tag: "latest"
+      pullPolicy: Always
+      imagePullSecretName: docker-config

@@ -26,12 +26,13 @@ NB: If you prefer a rich user experience when generating your projects consider 
 ## SAP BTP, Kyma runtime
 We assume you have pre-installed [node.js](https://nodejs.org/), the ability to build and push containers either via Docker [Desktop](https://www.docker.com/products/docker-desktop) or an alternative such as [podman](https://podman.io) and have a [Docker Hub](https://hub.docker.com/) ID. The Kubernetes command-line tool [kubectl](https://kubernetes.io/docs/tasks/tools/) is required with the [kubelogin](https://github.com/int128/kubelogin) extension. In order to build the project ensure that GNU [Make](https://www.gnu.org/software/make) is installed. In order to deploy the project ensure that [Helm](https://helm.sh/docs/intro/install) is installed.
 
-If using SAP HANA Cloud ensure you have created an instance, HDI Container and service key.
+If using SAP HANA Cloud ensure you have created an instance with an HDI Container and service key.
 
-Ensure that you are logged in with docker and kubectl and have (optionally created and) set a default namespace into which you want to deploy the project. For example:
+Ensure that you are logged in to Docker Hub, have set the KUBECONFIG environment variable and have optionally created a namespace into which you woud like to deploy the project. For example:
 ```bash
+docker login
+export KUBECONFIG=~/Downloads/kubeconfig.yaml
 kubectl create ns dev
-kubectl config set-context --current --namespace=dev
 ```
 
 To generate your new project:
@@ -42,19 +43,26 @@ NB: If you prefer a rich user experience when generating your projects consider 
 
 To build and push your project containers to Docker Hub:
 ```bash
-cd <projectName>
+cd <projectName>/k8s
 make docker-push
 ```
-If you prefer, you can issue the docker build & push commands individually - see the generated <projectName>/Makefile.
+If you prefer, you can issue the build & push commands manually (see the generated <projectName>/k8s/Makefile) or create a CI/CD pipeline.
 
-To deploy your new project:
+To deploy your new project to SAP BTP, Kyma runtime:
 ```bash
-cd <projectName>
-helm install <projectName> helm/<projectName>
+cd <projectName>/k8s
+make helm-deploy
+```
+If you prefer, you can issue the helm commands manually (see the generated <projectName>/k8s/Makefile) or create a CI/CD pipeline.
+
+To undeploy your new project from SAP BTP, Kyma runtime:
+```bash
+cd <projectName>/k8s
+make helm-undeploy
 ```
 
 ## Important
-Please pay special attention to messages produced by the generator - especially any regarding setting of API keys & credentials in helm/<projectName>/values.yaml, helm/<projectName>/templates/secret-db.yaml or helm/<projectName>/templates/secret-hdi.yaml!
+Please pay special attention to messages produced by the generator - especially those regarding setting of API keys & credentials!
 
 ## Getting To Know Yeoman
 

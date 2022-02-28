@@ -1,0 +1,22 @@
+dockerID: <%= dockerID %>
+services:
+  srvxs:
+    name: <%= projectName %>-srvxs
+    image:
+      repository: <%= projectName %>-srvxs
+      tag: "latest"
+      pullPolicy: Always
+      imagePullSecretName: docker-config
+      port: 5002
+    service:
+      port: 5002
+<% if(authentication){ -%>
+  uaa:
+    name: <%= projectName %>-uaa
+    bindingName: <%= projectName %>-uaa-binding
+    bindingSecretName: <%= projectName %>-uaa-binding-secret
+<% } -%>
+  hdi:
+    name: <%= projectName %>-hdi
+    bindingName: <%= projectName %>-hdi-binding
+    bindingSecretName: <%= projectName %>-hdi-binding-secret

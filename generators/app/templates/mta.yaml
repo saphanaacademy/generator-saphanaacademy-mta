@@ -63,7 +63,7 @@ modules:
 <% } -%>
       - name: <%= projectName %>-hdi
 <% } -%>
-
+<% if(ui){ -%>
   - name: <%= projectName %>
     type: html5
     path: app
@@ -92,7 +92,7 @@ modules:
           forwardAuthToken: true
 <% } -%>
 <% } -%>
-
+<% } -%>
 <% if(authentication || hana || apiS4HC || apiGraph || apiDest){ -%>
 resources:
 <% } -%>

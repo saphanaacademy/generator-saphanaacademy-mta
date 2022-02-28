@@ -37,12 +37,25 @@ module.exports = class extends Generator {
         name: "dockerID",
         message: "What is your Docker ID?",
         validate: (s) => {
-          if (/^[a-z0-9]*$/g.test(s) && s.length >= 4 && s.length <= 30 ) {
+          if (/^[a-z0-9]*$/g.test(s) && s.length >= 4 && s.length <= 30) {
             return true;
           }
           return "Your Docker ID must be between 4 and 30 characters long and can only contain numbers and lowercase letters.";
         },
         default: ""
+      },
+      {
+        when: response => response.BTPRuntime.includes("Kyma"),
+        type: "input",
+        name: "namespace",
+        message: "What SAP BTP, Kyma runtime namespace will you be deploying to?",
+        validate: (s) => {
+          if (/^[a-z0-9-]*$/g.test(s) && s.length > 0 && s.substring(0, 1) !== '-' && s.substring(s.length - 1) !== '-') {
+            return true;
+          }
+          return "Your SAP BTP, Kyma runtime namespace can only contain lowercase alphanumeric characters or -.";
+        },
+        default: "default"
       },
       {
         type: "confirm",
@@ -139,6 +152,12 @@ module.exports = class extends Generator {
       },
       {
         type: "confirm",
+        name: "ui",
+        message: "Would you like a UI?",
+        default: true
+      },
+      {
+        type: "confirm",
         name: "buildDeploy",
         message: "Would you like to build and deploy the project?",
         default: false
@@ -172,6 +191,17 @@ module.exports = class extends Generator {
         answers.connectivity = false;
       }
       answers.destinationPath = this.destinationPath();
+      if (answers.BTPRuntime.includes("Kyma")) {
+        let opt = {};
+        let resPodman = this.spawnCommandSync("podman", ["-v"], opt);
+        if ((resPodman.status === 0)) {
+          answers.dockerCmd = "podman";
+        } else {
+          answers.dockerCmd = "docker";
+        }
+      } else {
+        answers.dockerCmd = "";
+      }
       this.config.set(answers);
     });
   }
@@ -188,13 +218,13 @@ module.exports = class extends Generator {
       })
       .forEach((file) => {
         if (!(file.includes('.DS_Store'))) {
-          if (!(file.substring(0, 3) === 'db/' && answers.get('hana') === false)) {
-            if (!(file.substring(0, 6) === 'srvxs/' && answers.get('xsjs') === false)) {
-              if (!((file.substring(0, 5) === 'helm/' || file.includes('Dockerfile') || file === 'Makefile') && answers.get('BTPRuntime').includes('Kyma') === false)) {
-                if (!((file.includes('secret-db.yaml') || file.includes('secret-hdi.yaml') || file.includes('job-db.yaml')) && answers.get('hana') === false)) {
-                  if (!((file.includes('service-uaa.yaml') || file.includes('binding-uaa.yaml')) && answers.get('authentication') === false && answers.get('apiS4HC') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false)) {
-                    if (!((file.includes('service-dest.yaml') || file.includes('binding-dest.yaml')) && answers.get('apiS4HC') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false)) {
-                      if (!(file.includes('-srvxs.yaml') && answers.get('xsjs') === false)) {
+          if (!(file.substring(0, 4) === 'k8s/' && answers.get('BTPRuntime').includes('Kyma') === false)) {
+            if (!((file.substring(0, 4) === 'app/' || file.includes('k8s/app')) && answers.get('ui') === false)) {
+              if (!((file.substring(0, 3) === 'db/' || file.includes('k8s/db')) && answers.get('hana') === false)) {
+                if (!((file.substring(0, 6) === 'srvxs/' || file.includes('k8s/srvxs')) && answers.get('xsjs') === false)) {
+                  if (!(file.includes('secret-hdi.yaml') && answers.get('hana') === false)) {
+                    if (!((file.includes('service-uaa.yaml') || file.includes('binding-uaa.yaml')) && answers.get('authentication') === false && answers.get('apiS4HC') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false)) {
+                      if (!((file.includes('service-dest.yaml') || file.includes('binding-dest.yaml')) && answers.get('apiS4HC') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false)) {
                         if (!((file === 'mta.yaml' || file === 'xs-security.json') && answers.get('BTPRuntime').includes('Kyma'))) {
                           if (!(file === 'xs-security.json' && (answers.get('authentication') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false))) {
                             const sOrigin = this.templatePath(file);
@@ -224,18 +254,20 @@ module.exports = class extends Generator {
     if (answers.get("BTPRuntime").includes("Kyma")) {
       // Kyma runtime
       if (answers.get("buildDeploy")) {
-        let opt = { "cwd": answers.get("destinationPath") };
-        let resBuild = this.spawnCommandSync("make", ["docker-push"], opt);
-        if (resBuild.status === 0) {
-          this.spawnCommandSync("helm", ["install", answers.get("projectName"), " helm/" + answers.get("projectName")], opt);
+        let opt = { "cwd": answers.get("destinationPath") + "/k8s" };
+        let resPush = this.spawnCommandSync("make", ["docker-push"], opt);
+        if (resPush.status === 0) {
+          // HANA needs credentials setting in secrets YAML files prior to deploy
+          if (answers.get("hana") === false) {
+            this.spawnCommandSync("make", ["helm-deploy"], opt);
+          }
         }
       } else {
         this.log("");
         this.log("You need to build and deploy your project as follows:");
-        this.log(" cd " + answers.get("projectName"));
+        this.log(" cd " + answers.get("projectName") + "/k8s");
         this.log(" make docker-push");
-        this.log(" kubectl config set-context --current --namespace=<namespace>");
-        this.log(" helm install " + answers.get("projectName") + " helm/" + answers.get("projectName"));
+        this.log(" make helm-deploy");
       }
     } else {
       // Cloud Foundry runtime
@@ -264,12 +296,12 @@ module.exports = class extends Generator {
     }
     if (answers.get("BTPRuntime").includes("Kyma") && (answers.get("apiS4HC") || answers.get("apiGraph"))) {
       this.log("");
-      this.log("Don't forget to set values for API keys & credentials in helm/" + answers.get("projectName") + "/values.yaml!");
+      this.log("Before deployiong, consider setting values for API keys & credentials in k8s/srv/helm/" + answers.get("projectName") + "-srv/values.yaml or set directly using the destination service REST API immediately after deploying.");
     }
     if (answers.get("BTPRuntime").includes("Kyma") && answers.get("hana")) {
       this.log("");
-      this.log("Don't forget to set SAP HANA Cloud HDI Container credentials in helm/" + answers.get("projectName") + "/templates/secret-db.yaml & secret-hdi.yaml!");
+      this.log("Before deploying, set the SAP HANA Cloud HDI Container credentials in k8s/db/helm/" + answers.get("projectName") + "-db/templates/secret-db.yaml and k8s/srv/helm/" + answers.get("projectName") + "-srv/templates/secret-hdi.yaml.");
+      this.log("");
     }
-    this.log("");
   }
-};
+}

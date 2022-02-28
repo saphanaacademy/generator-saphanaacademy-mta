@@ -1,9 +1,12 @@
 FROM node:14-slim
 WORKDIR /app
-COPY package.json ./
+COPY srv .
 RUN npm install --only=production
-COPY . .
+<% if(hana){ -%>
+RUN apt-get update
+RUN apt-get install -y openssl python make g++
+<% } -%>
 ENV NODE_ENV=production
-EXPOSE 5000
+EXPOSE 5001
 USER node
 CMD [ "npm", "start" ]
