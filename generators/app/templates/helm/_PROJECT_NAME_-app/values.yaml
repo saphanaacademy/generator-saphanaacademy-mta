@@ -1,9 +1,9 @@
 dockerID: <%= dockerID %>
 services:
   app:
-    name: <%= projectName %>
+    name: <%= projectName %>-app
     image:
-      repository: <%= projectName %>
+      repository: <%= projectName %>-app
       tag: "latest"
       pullPolicy: Always
       imagePullSecretName: docker-config

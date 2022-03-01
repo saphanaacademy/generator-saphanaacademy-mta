@@ -4,7 +4,7 @@ clusterDomain: <%= clusterDomain %>
 <% } -%>
 services:
   app:
-    name: <%= projectName %>
+    name: <%= projectName %>-app
   srv:
     name: <%= projectName %>-srv
     image:
@@ -18,6 +18,7 @@ services:
 <% if(authentication || apiS4HC || apiGraph || apiDest){ -%>
   uaa:
     name: <%= projectName %>-uaa
+    xsappname: <%= projectName %>
     bindingName: <%= projectName %>-uaa-binding
     bindingSecretName: <%= projectName %>-uaa-binding-secret
 <% } -%>

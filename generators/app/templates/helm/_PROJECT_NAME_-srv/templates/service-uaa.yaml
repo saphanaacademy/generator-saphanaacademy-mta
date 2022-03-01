@@ -6,7 +6,7 @@ spec:
   clusterServiceClassExternalName: xsuaa
   clusterServicePlanExternalName: application
   parameters:
-    xsappname: {{ .Values.services.app.name }}
+    xsappname: {{ .Values.services.uaa.xsappname }}
     tenant-mode: dedicated
 <% if(authorization){ -%>
     scopes:
@@ -35,13 +35,13 @@ spec:
           - $XSAPPNAME.Admin
     role-collections:
 <% if(!attributes){ -%>
-      - name: {{ .Values.services.app.name }}_User
-        description: {{ .Values.services.app.name }} User
+      - name: {{ .Values.services.uaa.xsappname }}_User
+        description: {{ .Values.services.uaa.xsappname }} User
         role-template-references:
           - $XSAPPNAME.User
 <% } -%>
-      - name: {{ .Values.services.app.name }}_Admin
-        description: {{ .Values.services.app.name }} Admin
+      - name: {{ .Values.services.uaa.xsappname }}_Admin
+        description: {{ .Values.services.uaa.xsappname }} Admin
         role-template-references:
           - $XSAPPNAME.Admin
 <% }else{ -%>

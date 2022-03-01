@@ -168,6 +168,7 @@ module.exports = class extends Generator {
       }
       if (answers.BTPRuntime.includes("Kyma") === false) {
         answers.dockerID = "";
+        answers.namespace = "";
         answers.clusterDomain = "";
       }
       if (answers.apiGraph === false) {
@@ -218,10 +219,10 @@ module.exports = class extends Generator {
       })
       .forEach((file) => {
         if (!(file.includes('.DS_Store'))) {
-          if (!(file.substring(0, 4) === 'k8s/' && answers.get('BTPRuntime').includes('Kyma') === false)) {
-            if (!((file.substring(0, 4) === 'app/' || file.includes('k8s/app')) && answers.get('ui') === false)) {
-              if (!((file.substring(0, 3) === 'db/' || file.includes('k8s/db')) && answers.get('hana') === false)) {
-                if (!((file.substring(0, 6) === 'srvxs/' || file.includes('k8s/srvxs')) && answers.get('xsjs') === false)) {
+          if (!((file.substring(0, 5) === 'helm/' || file.includes('/Dockerfile') || file === 'dotdockerignore' || file === 'Makefile') && answers.get('BTPRuntime').includes('Kyma') === false)) {
+            if (!((file.substring(0, 4) === 'app/' || file.includes('helm/_PROJECT_NAME_-app')) && answers.get('ui') === false)) {
+              if (!((file.substring(0, 3) === 'db/' || file.includes('helm/_PROJECT_NAME_-db')) && answers.get('hana') === false)) {
+                if (!((file.substring(0, 6) === 'srvxs/' || file.includes('helm/_PROJECT_NAME_-srvxs')) && answers.get('xsjs') === false)) {
                   if (!(file.includes('secret-hdi.yaml') && answers.get('hana') === false)) {
                     if (!((file.includes('service-uaa.yaml') || file.includes('binding-uaa.yaml')) && answers.get('authentication') === false && answers.get('apiS4HC') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false)) {
                       if (!((file.includes('service-dest.yaml') || file.includes('binding-dest.yaml')) && answers.get('apiS4HC') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false)) {
@@ -230,9 +231,8 @@ module.exports = class extends Generator {
                             const sOrigin = this.templatePath(file);
                             let fileDest = file;
                             fileDest = fileDest.replace('_PROJECT_NAME_', answers.get('projectName'));
-                            if (fileDest === 'dotgitignore') {
-                              fileDest = '.gitignore';
-                            }
+                            fileDest = fileDest.replace('dotgitignore', '.gitignore');
+                            fileDest = fileDest.replace('dotdockerignore', '.dockerignore');
                             const sTarget = this.destinationPath(fileDest);
                             this.fs.copyTpl(sOrigin, sTarget, this.config.getAll());
                           }
@@ -254,7 +254,7 @@ module.exports = class extends Generator {
     if (answers.get("BTPRuntime").includes("Kyma")) {
       // Kyma runtime
       if (answers.get("buildDeploy")) {
-        let opt = { "cwd": answers.get("destinationPath") + "/k8s" };
+        let opt = { "cwd": answers.get("destinationPath") };
         let resPush = this.spawnCommandSync("make", ["docker-push"], opt);
         if (resPush.status === 0) {
           // HANA needs credentials setting in secrets YAML files prior to deploy
@@ -265,7 +265,7 @@ module.exports = class extends Generator {
       } else {
         this.log("");
         this.log("You need to build and deploy your project as follows:");
-        this.log(" cd " + answers.get("projectName") + "/k8s");
+        this.log(" cd " + answers.get("projectName"));
         this.log(" make docker-push");
         this.log(" make helm-deploy");
       }
@@ -296,11 +296,11 @@ module.exports = class extends Generator {
     }
     if (answers.get("BTPRuntime").includes("Kyma") && (answers.get("apiS4HC") || answers.get("apiGraph"))) {
       this.log("");
-      this.log("Before deployiong, consider setting values for API keys & credentials in k8s/srv/helm/" + answers.get("projectName") + "-srv/values.yaml or set directly using the destination service REST API immediately after deploying.");
+      this.log("Before deployiong, consider setting values for API keys & credentials in helm/" + answers.get("projectName") + "-srv/values.yaml or set directly using the destination service REST API immediately after deploying.");
     }
     if (answers.get("BTPRuntime").includes("Kyma") && answers.get("hana")) {
       this.log("");
-      this.log("Before deploying, set the SAP HANA Cloud HDI Container credentials in k8s/db/helm/" + answers.get("projectName") + "-db/templates/secret-db.yaml and k8s/srv/helm/" + answers.get("projectName") + "-srv/templates/secret-hdi.yaml.");
+      this.log("Before deploying, set the SAP HANA Cloud HDI Container credentials in helm/" + answers.get("projectName") + "-db/templates/secret-db.yaml and helm/" + answers.get("projectName") + "-srv/templates/secret-hdi.yaml.");
       this.log("");
     }
   }

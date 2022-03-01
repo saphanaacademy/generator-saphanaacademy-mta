@@ -30,9 +30,10 @@ If using SAP HANA Cloud ensure you have created an instance with an HDI Containe
 
 Ensure that you are logged in to Docker Hub, have set the KUBECONFIG environment variable and have optionally created a namespace into which you woud like to deploy the project. For example:
 ```bash
-docker login
+chmod go-r ~/Downloads/kubeconfig.yaml
 export KUBECONFIG=~/Downloads/kubeconfig.yaml
 kubectl create ns dev
+docker login
 ```
 
 To generate your new project:
@@ -43,21 +44,21 @@ NB: If you prefer a rich user experience when generating your projects consider 
 
 To build and push your project containers to Docker Hub:
 ```bash
-cd <projectName>/k8s
+cd <projectName>
 make docker-push
 ```
-If you prefer, you can issue the build & push commands manually (see the generated <projectName>/k8s/Makefile) or create a CI/CD pipeline.
+If you prefer, you can issue the build & push commands manually (see the generated <projectName>/Makefile) or create a CI/CD pipeline.
 
 To deploy your new project to SAP BTP, Kyma runtime:
 ```bash
-cd <projectName>/k8s
+cd <projectName>
 make helm-deploy
 ```
-If you prefer, you can issue the helm commands manually (see the generated <projectName>/k8s/Makefile) or create a CI/CD pipeline.
+If you prefer, you can issue the helm commands manually (see the generated <projectName>/Makefile) or create a CI/CD pipeline.
 
 To undeploy your new project from SAP BTP, Kyma runtime:
 ```bash
-cd <projectName>/k8s
+cd <projectName>
 make helm-undeploy
 ```
 

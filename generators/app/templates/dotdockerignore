@@ -1,0 +1,9 @@
+node_modules/
+package-lock.json
+default-*.json
+.env
+.git/
+.github/
+.yo-rc.json
+.vscode/
+.DS_Store

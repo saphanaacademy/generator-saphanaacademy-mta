@@ -1,6 +1,6 @@
 apiVersion: v2
-name: <%= projectName %>
-description: Helm chart for <%= projectName %>
+name: <%= projectName %>-app
+description: Helm chart for <%= projectName %>-app
 
 # A chart can be either an 'application' or a 'library' chart.
 #

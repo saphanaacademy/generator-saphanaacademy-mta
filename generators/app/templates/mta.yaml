@@ -64,7 +64,7 @@ modules:
       - name: <%= projectName %>-hdi
 <% } -%>
 <% if(ui){ -%>
-  - name: <%= projectName %>
+  - name: <%= projectName %>-app
     type: html5
     path: app
     parameters:
