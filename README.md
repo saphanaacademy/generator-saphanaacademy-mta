@@ -24,14 +24,28 @@ yo saphanaacademy-mta
 NB: If you prefer a rich user experience when generating your projects consider the [Application Wizard](https://marketplace.visualstudio.com/items?itemName=SAPOS.yeoman-ui).
 
 ## SAP BTP, Kyma runtime
-We assume you have pre-installed [node.js](https://nodejs.org/), the ability to build and push containers either via Docker [Desktop](https://www.docker.com/products/docker-desktop) or an alternative such as [podman](https://podman.io) and have a [Docker Hub](https://hub.docker.com/) ID. The Kubernetes command-line tool [kubectl](https://kubernetes.io/docs/tasks/tools/) is required with the [kubelogin](https://github.com/int128/kubelogin) extension. In order to build the project ensure that GNU [Make](https://www.gnu.org/software/make) is installed. In order to deploy the project ensure that [Helm](https://helm.sh/docs/intro/install) is installed.
+We assume you have pre-installed [node.js](https://nodejs.org/), have a [Docker Hub](https://hub.docker.com/) ID and the ability to build and push containers either via Docker [Desktop](https://www.docker.com/products/docker-desktop) or an alternative such as [podman](https://podman.io) or a CI/CD pipeline with [kaniko](https://github.com/GoogleContainerTools/kaniko).
 
-If using SAP HANA Cloud ensure you have created an instance with an HDI Container and service key.
+The Kubernetes command-line tool [kubectl](https://kubernetes.io/docs/tasks/tools/) is required with the [kubelogin](https://github.com/int128/kubelogin) extension.
 
-Ensure that you are logged in to Docker Hub, have set the KUBECONFIG environment variable and have optionally created a namespace into which you woud like to deploy the project. For example:
+In order to build or deploy the project via the Makefile ensure that GNU [Make](https://www.gnu.org/software/make) is installed.
+
+In order to deploy the project ensure that [Helm](https://helm.sh/docs/intro/install) is installed or use a CI/CD pipeline.
+
+If using SAP HANA Cloud ensure you have created an instance. As the "SAP HANA Schemas & HDI Containers service" is not yet available in the SAP BTP, Kyma runtime Service Catalog, an HDI Container with a service key will need to be created manually and the service key credentials added to secrets once the project has been generated.
+
+Ensure that you have set the KUBECONFIG environment variable, have optionally created a namespace into which you would like to deploy the project and are logged in to Docker Hub. For example:
+
+Mac/Linux:
 ```bash
-chmod go-r ~/Downloads/kubeconfig.yaml
-export KUBECONFIG=~/Downloads/kubeconfig.yaml
+chmod go-r {KUBECONFIG_FILE_PATH}
+export KUBECONFIG={KUBECONFIG_FILE_PATH}
+kubectl create ns dev
+docker login
+```
+Windows:
+```powershell
+$ENV:KUBECONFIG="{KUBECONFIG_FILE_PATH}"
 kubectl create ns dev
 docker login
 ```
@@ -47,14 +61,14 @@ To build and push your project containers to Docker Hub:
 cd <projectName>
 make docker-push
 ```
-If you prefer, you can issue the build & push commands manually (see the generated <projectName>/Makefile) or create a CI/CD pipeline.
+If you prefer, you can issue the build & push commands manually (see the generated <projectName>/Makefile) or use a CI/CD pipeline.
 
 To deploy your new project to SAP BTP, Kyma runtime:
 ```bash
 cd <projectName>
 make helm-deploy
 ```
-If you prefer, you can issue the helm commands manually (see the generated <projectName>/Makefile) or create a CI/CD pipeline.
+If you prefer, you can issue the helm commands manually (see the generated <projectName>/Makefile) or use a CI/CD pipeline.
 
 To undeploy your new project from SAP BTP, Kyma runtime:
 ```bash

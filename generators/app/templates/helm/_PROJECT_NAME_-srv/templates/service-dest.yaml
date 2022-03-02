@@ -8,7 +8,7 @@ spec:
   parameters:
     init_data:
       instance:
-        existing_destinations_policy: update
+        existing_destinations_policy: ignore
         destinations:
 <% if(apiS4HC){ -%>
           - Name: <%= projectName %>-s4hc-api

@@ -34,15 +34,9 @@ module.exports = class extends Generator {
       {
         when: response => response.BTPRuntime.includes("Kyma"),
         type: "input",
-        name: "dockerID",
-        message: "What is your Docker ID?",
-        validate: (s) => {
-          if (/^[a-z0-9]*$/g.test(s) && s.length >= 4 && s.length <= 30) {
-            return true;
-          }
-          return "Your Docker ID must be between 4 and 30 characters long and can only contain numbers and lowercase letters.";
-        },
-        default: ""
+        name: "clusterDomain",
+        message: "What is the cluster domain of your SAP BTP, Kyma runtime?",
+        default: "c-0000000.kyma.ondemand.com"
       },
       {
         when: response => response.BTPRuntime.includes("Kyma"),
@@ -56,6 +50,19 @@ module.exports = class extends Generator {
           return "Your SAP BTP, Kyma runtime namespace can only contain lowercase alphanumeric characters or -.";
         },
         default: "default"
+      },
+      {
+        when: response => response.BTPRuntime.includes("Kyma"),
+        type: "input",
+        name: "dockerID",
+        message: "What is your Docker ID?",
+        validate: (s) => {
+          if (/^[a-z0-9]*$/g.test(s) && s.length >= 4 && s.length <= 30) {
+            return true;
+          }
+          return "Your Docker ID must be between 4 and 30 characters long and can only contain numbers and lowercase letters.";
+        },
+        default: ""
       },
       {
         type: "confirm",
@@ -137,13 +144,6 @@ module.exports = class extends Generator {
         default: false
       },
       {
-        when: response => response.authentication === true && response.BTPRuntime.includes("Kyma"),
-        type: "input",
-        name: "clusterDomain",
-        message: "What is the cluster domain of your SAP BTP, Kyma runtime?",
-        default: "c-0000000.kyma.ondemand.com"
-      },
-      {
         when: response => response.authentication === true && response.apiGraph === true,
         type: "confirm",
         name: "apiGraphSameSubaccount",
@@ -155,6 +155,12 @@ module.exports = class extends Generator {
         name: "ui",
         message: "Would you like a UI?",
         default: true
+      },
+      {
+        type: "confirm",
+        name: "cicd",
+        message: "Would you like to enable Continuous Integration and Delivery (CI/CD)?",
+        default: false
       },
       {
         type: "confirm",
@@ -182,7 +188,6 @@ module.exports = class extends Generator {
       }
       if (answers.authentication === false) {
         answers.authorization = false;
-        answers.clusterDomain = "";
         answers.apiGraphSameSubaccount = false;
       }
       if (answers.hana === false || answers.authentication === false || answers.authorization === false) {
@@ -208,8 +213,35 @@ module.exports = class extends Generator {
   }
 
   writing() {
-    // scaffold the project
     var answers = this.config;
+
+    if (answers.get('cicd') === true) {
+      answers.set('cforg', 'org');
+      answers.set('cfspace', 'space');
+      answers.set('cfapi', 'https://api.cf.region.hana.ondemand.com');
+      // try to identify the targeted api, org & space
+      const resTarget = this.spawnCommandSync('cf', ['target'], { stdio: 'pipe' });
+      const stdoutTarget = resTarget.stdout.toString('utf8');
+      var field_strings = stdoutTarget.split(/[\r\n]*---[\r\n]*/);
+      for (var i = 0; i < field_strings.length; i++) {
+        if (field_strings[i] == '') {
+          continue;
+        }
+        var props_strings = field_strings[i].split('\n');
+        for (var j = 0; j < props_strings.length; j++) {
+          var keyvalue = props_strings[j].split(':');
+          if (keyvalue[0].toUpperCase() === 'API ENDPOINT') {
+            answers.set('cfapi', keyvalue[1].trim() + ':' + keyvalue[2].trim());
+          } else if (keyvalue[0] === 'org') {
+            answers.set('cforg', keyvalue[1].trim());
+          } else if (keyvalue[0] === 'space') {
+            answers.set('cfspace', keyvalue[1].trim());
+          }
+        }
+      }
+    }
+
+    // scaffold the project
     this.sourceRoot(path.join(__dirname, "templates"));
     glob
       .sync("**", {
@@ -219,22 +251,26 @@ module.exports = class extends Generator {
       })
       .forEach((file) => {
         if (!(file.includes('.DS_Store'))) {
-          if (!((file.substring(0, 5) === 'helm/' || file.includes('/Dockerfile') || file === 'dotdockerignore' || file === 'Makefile') && answers.get('BTPRuntime').includes('Kyma') === false)) {
-            if (!((file.substring(0, 4) === 'app/' || file.includes('helm/_PROJECT_NAME_-app')) && answers.get('ui') === false)) {
-              if (!((file.substring(0, 3) === 'db/' || file.includes('helm/_PROJECT_NAME_-db')) && answers.get('hana') === false)) {
-                if (!((file.substring(0, 6) === 'srvxs/' || file.includes('helm/_PROJECT_NAME_-srvxs')) && answers.get('xsjs') === false)) {
-                  if (!(file.includes('secret-hdi.yaml') && answers.get('hana') === false)) {
-                    if (!((file.includes('service-uaa.yaml') || file.includes('binding-uaa.yaml')) && answers.get('authentication') === false && answers.get('apiS4HC') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false)) {
-                      if (!((file.includes('service-dest.yaml') || file.includes('binding-dest.yaml')) && answers.get('apiS4HC') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false)) {
-                        if (!((file === 'mta.yaml' || file === 'xs-security.json') && answers.get('BTPRuntime').includes('Kyma'))) {
-                          if (!(file === 'xs-security.json' && (answers.get('authentication') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false))) {
-                            const sOrigin = this.templatePath(file);
-                            let fileDest = file;
-                            fileDest = fileDest.replace('_PROJECT_NAME_', answers.get('projectName'));
-                            fileDest = fileDest.replace('dotgitignore', '.gitignore');
-                            fileDest = fileDest.replace('dotdockerignore', '.dockerignore');
-                            const sTarget = this.destinationPath(fileDest);
-                            this.fs.copyTpl(sOrigin, sTarget, this.config.getAll());
+          if (!((file === 'Jenkinsfile' || file.includes('.pipeline') || file.includes('-cicd.')) && answers.get('cicd') === false)) {
+            if (!((file.substring(0, 5) === 'helm/' || file.includes('/Dockerfile') || file === 'dotdockerignore' || file === 'Makefile') && answers.get('BTPRuntime').includes('Kyma') === false)) {
+              if (!((file.includes('-cicd.') || file.substring(0, 5) === 'helm/') && answers.get('BTPRuntime').includes('Kyma') === false)) {
+                if (!((file.substring(0, 4) === 'app/' || file.includes('helm/_PROJECT_NAME_-app')) && answers.get('ui') === false)) {
+                  if (!((file.substring(0, 3) === 'db/' || file.includes('helm/_PROJECT_NAME_-db')) && answers.get('hana') === false)) {
+                    if (!((file.substring(0, 6) === 'srvxs/' || file.includes('helm/_PROJECT_NAME_-srvxs')) && answers.get('xsjs') === false)) {
+                      if (!(file.includes('secret-hdi.yaml') && answers.get('hana') === false)) {
+                        if (!((file.includes('service-uaa.yaml') || file.includes('binding-uaa.yaml')) && answers.get('authentication') === false && answers.get('apiS4HC') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false)) {
+                          if (!((file.includes('service-dest.yaml') || file.includes('binding-dest.yaml')) && answers.get('apiS4HC') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false)) {
+                            if (!((file === 'mta.yaml' || file === 'xs-security.json') && answers.get('BTPRuntime').includes('Kyma'))) {
+                              if (!(file === 'xs-security.json' && (answers.get('authentication') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false))) {
+                                const sOrigin = this.templatePath(file);
+                                let fileDest = file;
+                                fileDest = fileDest.replace('_PROJECT_NAME_', answers.get('projectName'));
+                                fileDest = fileDest.replace('dotgitignore', '.gitignore');
+                                fileDest = fileDest.replace('dotdockerignore', '.dockerignore');
+                                const sTarget = this.destinationPath(fileDest);
+                                this.fs.copyTpl(sOrigin, sTarget, this.config.getAll());
+                              }
+                            }
                           }
                         }
                       }
@@ -251,10 +287,66 @@ module.exports = class extends Generator {
   install() {
     // build and deploy if requested
     var answers = this.config;
+    var opt = { "cwd": answers.get("destinationPath") };
     if (answers.get("BTPRuntime").includes("Kyma")) {
       // Kyma runtime
+      if (answers.get("cicd") === true) {
+        // generate service account & kubeconfig
+        let resApply = this.spawnCommandSync("kubectl", ["apply", "-f", "sa-cicd.yaml", "-n", answers.get("namespace")], opt);
+        if (resApply.status === 0) {
+          opt.stdio = [process.stdout];
+          let resSecret = this.spawnCommandSync("kubectl", ["get", "sa", answers.get("projectName") + "-cicd", "-n", answers.get("namespace"), "-o", "jsonpath='{.secrets[0].name}'"], opt);
+          if (resSecret.status === 0) {
+            let resSecretDetail = this.spawnCommandSync("kubectl", ["get", "secret/" + resSecret.stdout.toString().replace(/'/g, ''), "-n", answers.get("namespace"), "-o", "jsonpath='{.data}'"], opt);
+            let secretDetail = resSecretDetail.stdout.toString();
+            secretDetail = JSON.parse(secretDetail.substring(1).substring(0, secretDetail.length - 2));
+            //console.log("ca.crt:", secretDetail["ca.crt"]);
+            //console.log("token:", Buffer.from(secretDetail.token, "base64").toString("utf-8"));
+            let fileText = {
+              "apiVersion": "v1",
+              "kind": "Config",
+              "clusters": [
+                {
+                  "name": "cicd-cluster",
+                  "cluster": {
+                    "certificate-authority-data": secretDetail["ca.crt"],
+                    "server": "https://api." + answers.get("clusterDomain")
+                  }
+                }
+              ],
+              "users": [
+                {
+                  "name": "cicd-user",
+                  "user": {
+                    "token": Buffer.from(secretDetail.token, "base64").toString("utf-8")
+                  }
+                }
+              ],
+              "contexts": [
+                {
+                  "name": "cicd-context",
+                  "context": {
+                    "cluster": "cicd-cluster",
+                    "namespace": answers.get("namespace"),
+                    "user": "cicd-user"
+                  }
+                }
+              ],
+              "current-context": "cicd-context"
+            };
+            const yaml = require('js-yaml');
+            const fs2 = require('fs');
+            let fileDest = this.destinationRoot() + "/sa-kubeconfig-cicd.yaml";
+            fs2.writeFile(fileDest, yaml.dump(fileText), 'utf-8', function (err) {
+              if (err) {
+                this.log(err.message);
+                return;
+              }
+            });
+          }
+        }
+      }
       if (answers.get("buildDeploy")) {
-        let opt = { "cwd": answers.get("destinationPath") };
         let resPush = this.spawnCommandSync("make", ["docker-push"], opt);
         if (resPush.status === 0) {
           // HANA needs credentials setting in secrets YAML files prior to deploy
@@ -264,7 +356,7 @@ module.exports = class extends Generator {
         }
       } else {
         this.log("");
-        this.log("You need to build and deploy your project as follows:");
+        this.log("You can build and deploy your project as follows or use a CI/CD pipeline:");
         this.log(" cd " + answers.get("projectName"));
         this.log(" make docker-push");
         this.log(" make helm-deploy");
@@ -273,14 +365,13 @@ module.exports = class extends Generator {
       // Cloud Foundry runtime
       var mta = "mta_archives/" + answers.get("projectName") + "_0.0.1.mtar";
       if (answers.get("buildDeploy")) {
-        let opt = { "cwd": answers.get("destinationPath") };
         let resBuild = this.spawnCommandSync("mbt", ["build"], opt);
         if (resBuild.status === 0) {
           this.spawnCommandSync("cf", ["deploy", mta], opt);
         }
       } else {
         this.log("");
-        this.log("You need to build and deploy your project as follows:");
+        this.log("You can build and deploy your project as follows or use a CI/CD pipeline:");
         this.log(" cd " + answers.get("projectName"));
         this.log(" mbt build");
         this.log(" cf deploy " + mta);
@@ -296,7 +387,7 @@ module.exports = class extends Generator {
     }
     if (answers.get("BTPRuntime").includes("Kyma") && (answers.get("apiS4HC") || answers.get("apiGraph"))) {
       this.log("");
-      this.log("Before deployiong, consider setting values for API keys & credentials in helm/" + answers.get("projectName") + "-srv/values.yaml or set directly using the destination service REST API immediately after deploying.");
+      this.log("Before deploying, consider setting values for API keys & credentials in helm/" + answers.get("projectName") + "-srv/values.yaml or set directly using the destination service REST API immediately after deployment.");
     }
     if (answers.get("BTPRuntime").includes("Kyma") && answers.get("hana")) {
       this.log("");
