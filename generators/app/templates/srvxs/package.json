@@ -1,6 +1,6 @@
 {
     "name": "<%= projectName %>-srvxs",
-<% if(!BTPRuntime.includes("Kyma")){ -%>
+<% if(BTPRuntime === 'CF'){ -%>
     "engines": {
         "node": "14.x"
     },

@@ -1,6 +1,6 @@
 ---
 general:
-<% if(BTPRuntime.includes('Kyma')){ -%>
+<% if(BTPRuntime === 'Kyma'){ -%>
   buildTool: "kaniko"
   dockerConfigJsonSecretTextCredentialsId: "docker"
   containerImageName: "<%= dockerID %>/<%= projectName %>-srv"
