@@ -28,7 +28,7 @@ module.exports = class extends Generator {
         type: "list",
         name: "BTPRuntime",
         message: "Which runtime will you be deploying the project to?",
-        choices: [{name: "SAP BTP, Cloud Foundry runtime", value: "CF"}, {name: "SAP BTP, Kyma runtime", value: "Kyma"}],
+        choices: [{ name: "SAP BTP, Cloud Foundry runtime", value: "CF", checked: true }, { name: "SAP BTP, Kyma runtime", value: "Kyma" }],
         default: ["CF"]
       },
       {
