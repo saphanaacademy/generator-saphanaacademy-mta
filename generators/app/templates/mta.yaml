@@ -10,6 +10,11 @@ modules:
   - name: <%= projectName %>-db
     type: hdb
     path: db
+    build-parameters:
+      ignore:
+        - default-*.json
+        - .env
+        - "*node_modules*"
     parameters:
       memory: 128M
       disk-quota: 256M
@@ -23,6 +28,11 @@ modules:
   - name: <%= projectName %>-srv
     type: nodejs
     path: srv
+    build-parameters:
+      ignore:
+        - default-*.json
+        - .env
+        - "*node_modules*"
     parameters:
       disk-quota: 512M
       memory: 256M
@@ -50,6 +60,11 @@ modules:
   - name: <%= projectName %>-srvxs
     type: nodejs
     path: srvxs
+    build-parameters:
+      ignore:
+        - default-*.json
+        - .env
+        - "*node_modules*"
     parameters:
       disk-quota: 512M
       memory: 256M
@@ -67,6 +82,11 @@ modules:
   - name: <%= projectName %>-app
     type: html5
     path: app
+    build-parameters:
+      ignore:
+        - default-*.json
+        - .env
+        - "*node_modules*"
     parameters:
       disk-quota: 512M
       memory: 256M
