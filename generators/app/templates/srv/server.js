@@ -1,7 +1,9 @@
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
-
+<% if(app2appType === "access"){ -%>
+const axios = require('axios');
+<% } -%>
 const xsenv = require('@sap/xsenv');
 xsenv.loadEnv();
 <% if(authentication || hana){ -%>
@@ -252,6 +254,74 @@ app.get('/srv/connections', function (req, res) {
             }
             res.status(200).json(results);
         });
+<% if(authorization){ -%>
+    } else {
+        res.status(403).send('Forbidden');
+    }
+<% } -%>
+});
+<% } -%>
+
+<% if(app2appType === "access" && app2appMethod.includes("user")){ -%>
+app.get('/srv/<%= app2appName %>user', async function (req, res) {
+<% if(authorization){ -%>
+    if (req.authInfo.checkScope('$XSAPPNAME.User')) {
+<% } -%>
+        try {
+            options = {
+                method: 'GET',
+<% if(BTPRuntime === "Kyma"){ -%>
+                url: 'https://<%= app2appName %>-srv.<%= clusterDomain %>/srv',
+<% }else{ -%>
+                url: 'https://<%= cforg %>-<%= cfspace %>-<%= app2appName %>-srv.cfapps.<%= cfregion %>.hana.ondemand.com/srv',
+<% } -%>
+                headers: {
+                    Authorization: 'Bearer ' + req.authInfo.getAppToken()
+                }
+            };
+            let results2 = await axios(options);
+            res.send(results2.data);
+        } catch (err) {
+            res.type('text/plain').status(500).send('ERROR: ' + err.message);
+        }
+<% if(authorization){ -%>
+    } else {
+        res.status(403).send('Forbidden');
+    }
+<% } -%>
+});
+<% } -%>
+
+<% if(app2appType === "access" && app2appMethod.includes("machine")){ -%>
+app.get('/srv/<%= app2appName %>tech', async function (req, res) {
+<% if(authorization){ -%>
+    if (req.authInfo.checkScope('$XSAPPNAME.User')) {
+<% } -%>
+        try {
+            let options1 = {
+                method: 'POST',
+                url: services.uaa.url + '/oauth/token?grant_type=client_credentials',
+                headers: {
+                    Authorization: 'Basic ' + Buffer.from(services.uaa.clientid + ':' + services.uaa.clientsecret).toString('base64')
+                }
+            };
+            let res1 = await axios(options1);
+            let options2 = {
+                method: 'GET',
+<% if(BTPRuntime === "Kyma"){ -%>
+                    url: 'https://<%= app2appName %>-srv.<%= clusterDomain %>/srv',
+<% }else{ -%>
+                    url: 'https://<%= cforg %>-<%= cfspace %>-<%= app2appName %>-srv.cfapps.<%= cfregion %>.hana.ondemand.com/srv',
+<% } -%>
+                    headers: {
+                    Authorization: 'Bearer ' + res1.data.access_token
+                }
+            };
+            let res2 = await axios(options2);
+            res.send(res2.data);
+        } catch (err) {
+            res.type('text/plain').status(500).send('ERROR: ' + err.message);
+        }
 <% if(authorization){ -%>
     } else {
         res.status(403).send('Forbidden');

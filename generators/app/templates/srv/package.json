@@ -13,6 +13,9 @@
         ,"@sap/xssec": "latest"
         ,"passport": "latest"
 <% } -%>
+<% if(app2appType === "access"){ -%>
+        ,"axios": "latest"
+<% } -%>
 <% if(hana){ -%>
         ,"@sap/hdbext": "latest"
 <% } -%>

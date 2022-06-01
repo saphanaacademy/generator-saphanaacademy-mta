@@ -14,6 +14,15 @@
     <h3>User</h3>
     <a href="/srv/user">User</a><br />
 <% } -%>
+<% if(app2appType === "access"){ -%>
+    <h3>App2App - <%= app2appName %></h3>
+<% if(app2appMethod.includes("user")){ -%>
+    <a href="/srv/<%= app2appName %>user">Principal Propagation of Business User</a><br />
+<% } -%>
+<% if(app2appMethod.includes("machine")){ -%>
+    <a href="/srv/<%= app2appName %>tech">Technical Communication</a><br />
+<% } -%>
+<% } -%>
 <% if(apiS4HC){ -%>
     <h3>SAP S/4HANA Cloud</h3>
     <a href="/srv/salesorders">Sales Orders</a><br />

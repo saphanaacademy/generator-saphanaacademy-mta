@@ -28,8 +28,8 @@ module.exports = class extends Generator {
         type: "list",
         name: "BTPRuntime",
         message: "Which runtime will you be deploying the project to?",
-        choices: [{ name: "SAP BTP, Cloud Foundry runtime", value: "CF", checked: true }, { name: "SAP BTP, Kyma runtime", value: "Kyma" }],
-        default: ["CF"]
+        choices: [{ name: "SAP BTP, Cloud Foundry runtime", value: "CF" }, { name: "SAP BTP, Kyma runtime", value: "Kyma" }],
+        default: "CF"
       },
       {
         when: response => response.BTPRuntime === "Kyma",
@@ -140,7 +140,7 @@ module.exports = class extends Generator {
         when: response => response.hana === true && response.authentication === true && response.authorization === true,
         type: "confirm",
         name: "attributes",
-        message: "Would you like role attributes?",
+        message: "Would you like to use role attributes?",
         default: false
       },
       {
@@ -149,6 +149,36 @@ module.exports = class extends Generator {
         name: "apiGraphSameSubaccount",
         message: "Will you be deploying to the subaccount of the SAP Graph service instance?",
         default: true
+      },
+      {
+        when: response => response.authentication === true && response.authorization === true,
+        type: "confirm",
+        name: "app2app",
+        message: "Would you like to configure an App2App authorization scenario?",
+        default: false
+      },
+      {
+        when: response => response.authentication === true && response.authorization === true && response.app2app === true,
+        type: "list",
+        name: "app2appType",
+        message: "Which App2App authorization scenario would you like to configure?",
+        choices: [{ name: "Authorize another app to use this app", value: "authorize" }, { name: "Access another app from this app", value: "access" }],
+        default: "authorize"
+      },
+      {
+        when: response => response.authentication === true && response.authorization === true && response.app2app === true,
+        type: "input",
+        name: "app2appName",
+        message: "What is the name of the other app (deployed to same BTP subaccount)?",
+        default: ""
+      },
+      {
+        when: response => response.authentication === true && response.authorization === true && response.app2app === true,
+        type: "checkbox",
+        name: "app2appMethod",
+        message: "What type of App2App authentication would you like?",
+        choices: [{ name: "Principal Propagation of Business User", value: "user", checked: true }, { name: "Technical Communication", value: "machine" }],
+        default: ["user"]
       },
       {
         type: "confirm",
@@ -188,10 +218,19 @@ module.exports = class extends Generator {
       }
       if (answers.authentication === false) {
         answers.authorization = false;
+        answers.app2app = false;
         answers.apiGraphSameSubaccount = false;
       }
       if (answers.hana === false || answers.authentication === false || answers.authorization === false) {
         answers.attributes = false;
+      }
+      if (answers.authorization === false) {
+        answers.app2app = false;
+      }
+      if (answers.app2app === false) {
+        answers.app2appType = "";
+        answers.app2appName = "";
+        answers.app2appMethod = "";
       }
       if (!((answers.apiGraph === true || answers.apiDest === true) && answers.BTPRuntime !== "Kyma")) {
         answers.connectivity = false;
@@ -215,10 +254,11 @@ module.exports = class extends Generator {
   writing() {
     var answers = this.config;
 
-    if (answers.get('cicd') === true) {
+    if (answers.get('cicd') === true || answers.get('app2appType') === "access") {
       answers.set('cforg', 'org');
       answers.set('cfspace', 'space');
-      answers.set('cfapi', 'https://api.cf.region.hana.ondemand.com');
+      answers.set('cfapi', 'https://api.cf.<region>.hana.ondemand.com');
+      answers.set('cfregion', '<region>');
       // try to identify the targeted api, org & space
       const resTarget = this.spawnCommandSync('cf', ['target'], { stdio: 'pipe' });
       const stdoutTarget = resTarget.stdout.toString('utf8');
@@ -232,6 +272,7 @@ module.exports = class extends Generator {
           var keyvalue = props_strings[j].split(':');
           if (keyvalue[0].toUpperCase() === 'API ENDPOINT') {
             answers.set('cfapi', keyvalue[1].trim() + ':' + keyvalue[2].trim());
+            answers.set('cfregion', keyvalue[2].split('.')[2]);
           } else if (keyvalue[0] === 'org') {
             answers.set('cforg', keyvalue[1].trim());
           } else if (keyvalue[0] === 'space') {
