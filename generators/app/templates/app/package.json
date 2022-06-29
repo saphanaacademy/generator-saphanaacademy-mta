@@ -1,5 +1,10 @@
 {
     "name": "<%= projectName %>-app",
+<% if(BTPRuntime === 'CF'){ -%>
+    "engines": {
+        "node": "14.x"
+    },
+<% } -%>
     "dependencies": {
         "@sap/approuter": "latest"
     },
