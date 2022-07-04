@@ -52,7 +52,25 @@ spec:
             tokenServiceURLType: Dedicated
             URL.headers.Application-Interface-Key: {{ .Values.services.dest.ApplicationInterfaceKey }}
 <% } -%>
-<% if(apiDest){ -%>
+<% if(apiSACTenant){ -%>
+          - Name: <%= projectName %>-sac-tenant-api
+            Description: SAP Analytics Cloud Tenant API
+            URL: <%= apiSACHost %>
+            Type: HTTP
+            ProxyType: Internet
+            Authentication: OAuth2SAMLBearerAssertion
+            audience: <%= apiSACAudience %>
+            authnContextClassRef: urn:oasis:names:tc:SAML:2.0:ac:classes:PreviousSession
+            clientKey: {{ .Values.services.dest.SAC.clientId }}
+            tokenServiceURL: <%= apiSACTokenURL %>
+            tokenServiceUser: {{ .Values.services.dest.SAC.clientId }}
+            tokenServicePassword: {{ .Values.services.dest.SAC.clientSecret }}
+            nameIdFormat: urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress
+            userIdSource: email
+            URL.headers.Application-Interface-Key: {{ .Values.services.dest.ApplicationInterfaceKey }}
+            HTML5.DynamicDestination: true
+<% } -%>
+<% if(apiDest && !apiSACTenant){ -%>
           - Name: <%= projectName %>-nw
             Description: Northwind
             URL: https://services.odata.org/v2/Northwind/Northwind.svc

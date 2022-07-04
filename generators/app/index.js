@@ -104,6 +104,34 @@ module.exports = class extends Generator {
         default: false
       },
       {
+        when: response => response.apiDest === true,
+        type: "confirm",
+        name: "apiSACTenant",
+        message: "Would you like to configure the SAP Analytics Cloud Tenant API?",
+        default: false
+      },
+      {
+        when: response => response.apiSACTenant === true,
+        type: "input",
+        name: "apiSACHost",
+        message: "What is your SAP Analytics Cloud Host?",
+        default: "https://<tenant>.<region>.hcs.cloud.sap"
+      },
+      {
+        when: response => response.apiSACTenant === true,
+        type: "input",
+        name: "apiSACTokenURL",
+        message: "What is your SAP Analytics Cloud OAuth2SAML Token URL?",
+        default: "https://<tenant>.authentication.<region>.hana.ondemand.com/oauth/token/alias/<alias>"
+      },
+      {
+        when: response => response.apiSACTenant === true,
+        type: "input",
+        name: "apiSACAudience",
+        message: "What is your SAP Analytics Cloud OAuth2SAML Audience?",
+        default: "https://<tenant>.authentication.<region>.hana.ondemand.com"
+      },
+      {
         when: response => (response.apiGraph === true || response.apiDest === true) && response.BTPRuntime !== "Kyma",
         type: "confirm",
         name: "connectivity",
@@ -213,6 +241,11 @@ module.exports = class extends Generator {
         answers.apiGraphTokenURL = "";
         answers.apiGraphSameSubaccount = false;
       }
+      if (answers.apiSACTenant === false) {
+        answers.apiSACHost = "";
+        answers.apiSACTokenURL = "";
+        answers.apiSACAudience = "";
+      }
       if (answers.hana === false) {
         answers.xsjs = false;
       }
@@ -231,6 +264,9 @@ module.exports = class extends Generator {
         answers.app2appType = "";
         answers.app2appName = "";
         answers.app2appMethod = "";
+      }
+      if (answers.apiSACTenant === true) {
+        answers.authentication = true;
       }
       if (!((answers.apiGraph === true || answers.apiDest === true) && answers.BTPRuntime !== "Kyma")) {
         answers.connectivity = false;
@@ -426,7 +462,7 @@ module.exports = class extends Generator {
     if (answers.get("authentication") && answers.get("apiGraph") && answers.get("apiGraphSameSubaccount") === false) {
       this.log("Important: Trust needs to be configured when not deploying to the subaccount of the SAP Graph service instance!");
     }
-    if (answers.get('BTPRuntime') === "Kyma" && (answers.get("apiS4HC") || answers.get("apiGraph"))) {
+    if (answers.get('BTPRuntime') === "Kyma" && (answers.get("apiS4HC") || answers.get("apiGraph") || answers.get("apiSACTenant"))) {
       this.log("");
       this.log("Before deploying, consider setting values for API keys & credentials in helm/" + answers.get("projectName") + "-srv/values.yaml or set directly using the destination service REST API immediately after deployment.");
     }

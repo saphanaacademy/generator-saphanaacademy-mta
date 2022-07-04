@@ -159,7 +159,7 @@ app.get('/srv/dest', async function (req, res) {
         try {
             let res1 = await core.executeHttpRequest(
                 {
-                    destinationName: req.query.destination || '<%= projectName %>-nw'
+                    destinationName: req.query.destination || ''
 <% if(authentication){ -%>
                     ,
                     jwt: retrieveJwt(req)

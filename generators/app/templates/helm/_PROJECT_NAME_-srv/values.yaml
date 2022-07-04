@@ -27,7 +27,7 @@ services:
     name: <%= projectName %>-dest
     bindingName: <%= projectName %>-dest-binding
     bindingSecretName: <%= projectName %>-dest-binding-secret
-<% if(apiS4HC || apiGraph){ -%>
+<% if(apiS4HC || apiGraph || apiSACTenant){ -%>
     ApplicationInterfaceKey: <SetValue>
 <% if(apiS4HC){ -%>
     APIKey: <SetValue>
@@ -39,6 +39,11 @@ services:
 <% if(!apiGraphSameSubaccount){ -%>
       alias: <SetValue>
 <% } -%>
+<% } -%>
+<% if(apiSACTenant){ -%>
+    SAC:
+      clientId: <SetValue>
+      clientSecret: <SetValue>
 <% } -%>
 <% } -%>
 <% } -%>

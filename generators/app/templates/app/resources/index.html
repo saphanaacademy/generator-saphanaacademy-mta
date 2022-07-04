@@ -38,7 +38,11 @@
 <% } -%>
 <% if(apiDest){ -%>
     <h3>Destinations</h3>
+<% if(apiSACTenant){ -%>
+    <a href="/srv/dest?destination=<%= projectName %>-sac-tenant-api&path=api/v1/stories?include=models">Stories (SAP Analytics Cloud)</a><br />
+<% } else { -%>
     <a href="/srv/dest?destination=<%= projectName %>-nw&path=Customers?$top=1">Customers (Northwind)</a><br />
+<% } -%>
 <% } -%>
 <% if(hana){ -%>
     <h3>SAP HANA Cloud</h3>
