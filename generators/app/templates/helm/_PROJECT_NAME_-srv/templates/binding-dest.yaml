@@ -1,8 +1,12 @@
-apiVersion: servicecatalog.k8s.io/v1beta1
+apiVersion: services.cloud.sap.com/v1alpha1
 kind: ServiceBinding
 metadata:
   name: {{ .Values.services.dest.bindingName }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.services.dest.bindingName }}
 spec:
-  instanceRef:
-    name: {{ .Values.services.dest.name }}
+  serviceInstanceName: {{ .Values.services.dest.name }}
+  externalName: {{ .Values.services.dest.name }}
   secretName: {{ .Values.services.dest.bindingSecretName }}
+  parameters: {}
+  parametersFrom: []

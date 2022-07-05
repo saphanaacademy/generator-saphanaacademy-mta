@@ -1,10 +1,13 @@
-apiVersion: servicecatalog.k8s.io/v1beta1
+apiVersion: services.cloud.sap.com/v1alpha1
 kind: ServiceInstance
 metadata:
   name: {{ .Values.services.uaa.name }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.services.uaa.name }}
 spec:
-  clusterServiceClassExternalName: xsuaa
-  clusterServicePlanExternalName: application
+  externalName: {{ .Values.services.uaa.name }}
+  serviceOfferingName: xsuaa
+  servicePlanName: application
   parameters:
     xsappname: {{ .Values.services.uaa.xsappname }}
     tenant-mode: dedicated
