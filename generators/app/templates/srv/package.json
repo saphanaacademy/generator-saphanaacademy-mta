@@ -19,10 +19,14 @@
 <% if(hana){ -%>
         ,"@sap/hdbext": "latest"
 <% } -%>
+<% if(apiGraph || apiDest){ -%>
+        ,"@sap-cloud-sdk/http-client": "latest"
+<% } -%>
 <% if(apiS4HC || apiGraph || apiDest){ -%>
-        ,"@sap-cloud-sdk/core": "latest"
+        ,"@sap-cloud-sdk/connectivity": "latest"
 <% } -%>
 <% if(apiS4HC){ -%>
+        ,"@sap-cloud-sdk/odata-v2": "latest"
         ,"@sap/cloud-sdk-vdm-sales-order-service": "latest"
 <% } -%>
     },

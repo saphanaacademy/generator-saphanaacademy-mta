@@ -241,6 +241,9 @@ module.exports = class extends Generator {
         answers.apiGraphTokenURL = "";
         answers.apiGraphSameSubaccount = false;
       }
+      if (answers.apiDest === false) {
+        answers.apiSACTenant = false;
+      }
       if (answers.apiSACTenant === false) {
         answers.apiSACHost = "";
         answers.apiSACTokenURL = "";
@@ -338,7 +341,7 @@ module.exports = class extends Generator {
                         if (!((file.includes('service-uaa.yaml') || file.includes('binding-uaa.yaml')) && answers.get('authentication') === false && answers.get('apiS4HC') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false)) {
                           if (!((file.includes('service-dest.yaml') || file.includes('binding-dest.yaml')) && answers.get('apiS4HC') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false)) {
                             if (!((file === 'mta.yaml' || file === 'xs-security.json') && answers.get('BTPRuntime') !== 'CF')) {
-                              if (!(file === 'xs-security.json' && (answers.get('authentication') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false))) {
+                              if (!(file === 'xs-security.json' && (answers.get('authentication') === false && answers.get('apiS4HC') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false))) {
                                 const sOrigin = this.templatePath(file);
                                 let fileDest = file;
                                 fileDest = fileDest.replace('_PROJECT_NAME_', answers.get('projectName'));

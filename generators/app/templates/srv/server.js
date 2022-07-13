@@ -71,13 +71,13 @@ app.get('/srv/user', function (req, res) {
 <% } -%>
 
 <% if(apiGraph || apiDest){ -%>
-const core = require('@sap-cloud-sdk/core');
+const httpClient = require('@sap-cloud-sdk/http-client');
 <% } -%>
 <% if(apiS4HC || apiGraph || apiDest){ -%>
-const { retrieveJwt } = require('@sap-cloud-sdk/core');
+const { retrieveJwt } = require('@sap-cloud-sdk/connectivity');
 <% } -%>
 <% if(apiS4HC){ -%>
-const { desc } = require('@sap-cloud-sdk/core');
+const { desc } = require('@sap-cloud-sdk/odata-v2');
 const { salesOrderService } = require('@sap/cloud-sdk-vdm-sales-order-service');
 const { salesOrderApi, salesOrderItemApi } = salesOrderService();
 
@@ -86,7 +86,7 @@ function getSalesOrders(req) {
         .getAll()
         .filter(salesOrderApi.schema.TOTAL_NET_AMOUNT.greaterThan(2000))
         .top(3)
-        .orderBy(new desc(salesOrderApi.schema.LAST_CHANGE_DATE_TIME))
+        .orderBy(desc(salesOrderApi.schema.LAST_CHANGE_DATE_TIME))
         .select(
             salesOrderApi.schema.SALES_ORDER,
             salesOrderApi.schema.LAST_CHANGE_DATE_TIME,
@@ -125,7 +125,7 @@ app.get('/srv/graph', async function (req, res) {
     if (req.authInfo.checkScope('$XSAPPNAME.User')) {
 <% } -%>
         try {
-            let res1 = await core.executeHttpRequest(
+            let res1 = await httpClient.executeHttpRequest(
                 {
                     destinationName: '<%= projectName %>-graph-api'
 <% if(authentication){ -%>
@@ -157,7 +157,7 @@ app.get('/srv/dest', async function (req, res) {
     if (req.authInfo.checkScope('$XSAPPNAME.User')) {
 <% } -%>
         try {
-            let res1 = await core.executeHttpRequest(
+            let res1 = await httpClient.executeHttpRequest(
                 {
                     destinationName: req.query.destination || ''
 <% if(authentication){ -%>
