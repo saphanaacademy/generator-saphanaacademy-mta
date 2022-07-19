@@ -1,29 +1,45 @@
 <% if(hana){ -%>
 build-db:
-	<%= dockerCmd %> build -t <%= dockerID %>/<%= projectName %>-db:latest -f db .
+<% if(buildCmd === 'pack'){ -%>
+	pack build <%= dockerID %>/<%= projectName %>-db:latest -p db -B paketobuildpacks/builder:base
+<% }else{ -%>
+	<%= buildCmd %> build -t <%= dockerID %>/<%= projectName %>-db:latest -f db/Dockerfile .
+<% } -%>
+<% } -%>
+build-srv:
+<% if(buildCmd === 'pack'){ -%>
+	pack build <%= dockerID %>/<%= projectName %>-srv:latest -p srv -B paketobuildpacks/builder:base
+<% }else{ -%>
+	<%= buildCmd %> build -t <%= dockerID %>/<%= projectName %>-srv:latest -f srv/Dockerfile .
 <% } -%>
 <% if(xsjs){ -%>
 build-srvxs:
-	<%= dockerCmd %> build -t <%= dockerID %>/<%= projectName %>-srvxs:latest -f srvxs .
+<% if(buildCmd === 'pack'){ -%>
+	pack build <%= dockerID %>/<%= projectName %>-srvxs:latest -p srvxs -B paketobuildpacks/builder:full
+<% }else{ -%>
+	<%= buildCmd %> build -t <%= dockerID %>/<%= projectName %>-srvxs:latest -f srvxs/Dockerfile .
 <% } -%>
-build-srv:
-	<%= dockerCmd %> build -t <%= dockerID %>/<%= projectName %>-srv:latest -f srv .
+<% } -%>
 <% if(ui){ -%>
 build-app:
-	<%= dockerCmd %> build -t <%= dockerID %>/<%= projectName %>-app:latest -f app .
+<% if(buildCmd === 'pack'){ -%>
+	pack build <%= dockerID %>/<%= projectName %>-app:latest -p app -B paketobuildpacks/builder:base
+<% }else{ -%>
+	<%= buildCmd %> build -t <%= dockerID %>/<%= projectName %>-app:latest -f app/Dockerfile .
+<% } -%>
 <% } -%>
 
-docker-push: <% if(hana){ -%>build-db<% } -%> <% if(xsjs){ -%>build-srvxs<% } -%> build-srv <% if(ui){ -%>build-app<% } -%>
+docker-push:<% if(hana){ -%> build-db<% } -%> build-srv<% if(xsjs){ -%> build-srvxs<% } -%><% if(ui){ -%> build-app<% } -%>
 
 <% if(hana){ -%>
-	<%= dockerCmd %> push <%= dockerID %>/<%= projectName %>-db:latest
+	<% if(buildCmd === 'podman'){ -%>podman<% }else{ -%>docker<% } -%> push <%= dockerID %>/<%= projectName %>-db:latest
 <% } -%>
+	<% if(buildCmd === 'podman'){ -%>podman<% }else{ -%>docker<% } -%> push <%= dockerID %>/<%= projectName %>-srv:latest
 <% if(xsjs){ -%>
-	<%= dockerCmd %> push <%= dockerID %>/<%= projectName %>-srvxs:latest
+	<% if(buildCmd === 'podman'){ -%>podman<% }else{ -%>docker<% } -%> push <%= dockerID %>/<%= projectName %>-srvxs:latest
 <% } -%>
-	<%= dockerCmd %> push <%= dockerID %>/<%= projectName %>-srv:latest
 <% if(ui){ -%>
-	<%= dockerCmd %> push <%= dockerID %>/<%= projectName %>-app:latest
+	<% if(buildCmd === 'podman'){ -%>podman<% }else{ -%>docker<% } -%> push <%= dockerID %>/<%= projectName %>-app:latest
 <% } -%>
 
 helm-deploy:

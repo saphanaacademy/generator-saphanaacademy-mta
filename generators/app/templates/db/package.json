@@ -2,7 +2,7 @@
     "name": "<%= projectName %>-db",
 <% if(BTPRuntime === 'CF'){ -%>
     "engines": {
-        "node": "14.x"
+        "node": "^14"
     },
 <% } -%>
     "dependencies": {

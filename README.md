@@ -24,7 +24,7 @@ yo saphanaacademy-mta
 NB: If you prefer a rich user experience when generating your projects consider the [Application Wizard](https://marketplace.visualstudio.com/items?itemName=SAPOS.yeoman-ui).
 
 ## SAP BTP, Kyma runtime
-We assume you have pre-installed [node.js](https://nodejs.org/), have a [Docker Hub](https://hub.docker.com/) ID and the ability to build and push containers either via Docker [Desktop](https://www.docker.com/products/docker-desktop) or an alternative such as [podman](https://podman.io) or a CI/CD pipeline with [kaniko](https://github.com/GoogleContainerTools/kaniko).
+We assume you have pre-installed [node.js](https://nodejs.org/), have a [Docker Hub](https://hub.docker.com/) ID and the ability to build and push containers either via Docker [Desktop](https://www.docker.com/products/docker-desktop) or an alternative such as Rancher [Desktop](https://rancherdesktop.io/) or [podman](https://podman.io) or a CI/CD pipeline with [kaniko](https://github.com/GoogleContainerTools/kaniko).
 
 The Kubernetes command-line tool [kubectl](https://kubernetes.io/docs/tasks/tools/) is required with the [kubelogin](https://github.com/int128/kubelogin) extension.
 
@@ -32,7 +32,7 @@ In order to build or deploy the project via the Makefile ensure that GNU [Make](
 
 In order to deploy the project ensure that [Helm](https://helm.sh/docs/intro/install) is installed or use a CI/CD pipeline.
 
-If using SAP HANA Cloud ensure you have created an instance. As the "SAP HANA Schemas & HDI Containers service" is not yet available in the SAP BTP, Kyma runtime Service Catalog, an HDI Container with a service key will need to be created manually and the service key credentials added to secrets once the project has been generated.
+If using SAP HANA Cloud ensure you have created an instance and that you are logged in to the Cloud Foundry CLI and are targeting the org and space into which you want to create the HDI Container for the project. The HDI Container and associated service key will be created and the service key credentials added to secrets as the project is generated.
 
 Ensure that you have set the KUBECONFIG environment variable, have optionally created a namespace into which you would like to deploy the project and are logged in to Docker Hub. For example:
 

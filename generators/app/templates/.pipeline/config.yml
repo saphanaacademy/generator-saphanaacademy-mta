@@ -1,7 +1,7 @@
 ---
 general:
 <% if(BTPRuntime === 'Kyma'){ -%>
-  buildTool: "kaniko"
+  buildTool: "docker"
   dockerConfigJsonSecretTextCredentialsId: "docker"
   containerImageName: "<%= dockerID %>/<%= projectName %>-srv"
   containerImageTag: "latest"
