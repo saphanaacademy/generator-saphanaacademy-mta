@@ -371,7 +371,8 @@ module.exports = class extends Generator {
       const fs2 = require('fs');
       if (answers.get("cicd") === true) {
         // generate service account & kubeconfig
-        let resApply = this.spawnCommandSync("kubectl", ["apply", "-f", "sa-cicd.yaml", "-n", answers.get("namespace")], opt);
+        let fileDest = path.join(this.destinationRoot(), "sa-cicd.yaml");
+        let resApply = this.spawnCommandSync("kubectl", ["apply", "-f", fileDest, "-n", answers.get("namespace")], opt);
         if (resApply.status === 0) {
           opt.stdio = [process.stdout];
           let resSecret = this.spawnCommandSync("kubectl", ["get", "sa", answers.get("projectName") + "-cicd", "-n", answers.get("namespace"), "-o", "jsonpath='{.secrets[0].name}'"], opt);
@@ -411,7 +412,7 @@ module.exports = class extends Generator {
               ],
               "current-context": "cicd-context"
             };
-            let fileDest = path.join(this.destinationRoot(), "sa-kubeconfig-cicd.yaml");
+            fileDest = path.join(this.destinationRoot(), "sa-kubeconfig-cicd.yaml");
             fs2.writeFile(fileDest, yaml.dump(fileText), 'utf-8', function (err) {
               if (err) {
                 console.log(err.message);
@@ -468,7 +469,7 @@ module.exports = class extends Generator {
                   return;
                 }
               });
-              let resApply = this.spawnCommandSync("kubectl", ["apply", "-f", "secret-hdi.yaml", "-n", answers.get("namespace")], opt);
+              let resApply = this.spawnCommandSync("kubectl", ["apply", "-f", fileDest, "-n", answers.get("namespace")], opt);
               fs2.unlinkSync(fileDest);
               let VCAP_SERVICES = '{"hana":[{"label":"hana","plan":"hdi-shared","name":"' + answers.get("projectName") + '-hdi","tags":["hana","database","relational"],"credentials":' + JSON.stringify(credentials) + '}]}';
               fileText = {
@@ -489,7 +490,7 @@ module.exports = class extends Generator {
                   return;
                 }
               });
-              resApply = this.spawnCommandSync("kubectl", ["apply", "-f", "secret-db.yaml", "-n", answers.get("namespace")], opt);
+              resApply = this.spawnCommandSync("kubectl", ["apply", "-f", fileDest, "-n", answers.get("namespace")], opt);
               fs2.unlinkSync(fileDest);
             }
           }
