@@ -438,7 +438,7 @@ module.exports = class extends Generator {
               var props_strings = field_strings[i].split('\n');
               for (var j = 0; j < props_strings.length; j++) {
                 var keyvalue = props_strings[j].split(':');
-                if (keyvalue[0].toUpperCase() === 'STATUS') {
+                if (keyvalue[0].trim().toUpperCase() === 'STATUS') {
                   status = keyvalue[1].trim();
                   this.log(status);
                 }

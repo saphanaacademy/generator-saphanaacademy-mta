@@ -1,7 +1,7 @@
 {
   "name": "generator-saphanaacademy-mta",
   "displayName": "SAP HANA Academy MTA",
-  "version": "0.0.30",
+  "version": "0.0.31",
   "description": "Yeoman Generator to jump-start Full-Stack Cloud Applications",
   "homepage": "https://www.youtube.com/saphanaacademy",
   "author": {
@@ -55,9 +55,9 @@
   },
   "dependencies": {
     "chalk": "^4.1.0",
+    "js-yaml": "^4.1.0",
     "yeoman-generator": "^4.11.0",
-    "yosay": "^2.0.2",
-    "js-yaml": "^4.1.0"
+    "yosay": "^2.0.2"
   },
   "jest": {
     "testEnvironment": "node"
