@@ -44,14 +44,14 @@ docker-push:<% if(hana){ -%> build-db<% } -%> build-srv<% if(xsjs){ -%> build-sr
 
 helm-deploy:
 <% if(hana){ -%>
-	helm upgrade -n <%= namespace %> -i <%= projectName %>-db helm/<%= projectName %>-db
+	helm upgrade -n <%= namespace %> -i <%= projectName %>-db helm/<%= projectName %>-db --install
 <% } -%>
-	helm upgrade -n <%= namespace %> -i <%= projectName %>-srv helm/<%= projectName %>-srv
+	helm upgrade -n <%= namespace %> -i <%= projectName %>-srv helm/<%= projectName %>-srv --install
 <% if(xsjs){ -%>
-	helm upgrade -n <%= namespace %> -i <%= projectName %>-srvxs helm/<%= projectName %>-srvxs
+	helm upgrade -n <%= namespace %> -i <%= projectName %>-srvxs helm/<%= projectName %>-srvxs --install
 <% } -%>
 <% if(ui){ -%>
-	helm upgrade -n <%= namespace %> -i <%= projectName %>-app helm/<%= projectName %>-app
+	helm upgrade -n <%= namespace %> -i <%= projectName %>-app helm/<%= projectName %>-app --install
 <% } -%>
 
 helm-undeploy:
