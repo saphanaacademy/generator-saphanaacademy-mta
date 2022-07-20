@@ -411,7 +411,7 @@ module.exports = class extends Generator {
               ],
               "current-context": "cicd-context"
             };
-            let fileDest = this.destinationRoot() + "/sa-kubeconfig-cicd.yaml";
+            let fileDest = path.join(this.destinationRoot(), "sa-kubeconfig-cicd.yaml");
             fs2.writeFile(fileDest, yaml.dump(fileText), 'utf-8', function (err) {
               if (err) {
                 console.log(err.message);
@@ -461,7 +461,7 @@ module.exports = class extends Generator {
                 "type": "Opaque",
                 stringData
               };
-              let fileDest = this.destinationRoot() + "/secret-hdi.yaml";
+              let fileDest = path.join(this.destinationRoot(), "secret-hdi.yaml");
               fs2.writeFileSync(fileDest, yaml.dump(fileText), 'utf-8', function (err) {
                 if (err) {
                   console.log(err.message);
@@ -482,7 +482,7 @@ module.exports = class extends Generator {
                   VCAP_SERVICES
                 }
               };
-              fileDest = this.destinationRoot() + "/secret-db.yaml";
+              fileDest = path.join(this.destinationRoot(), "secret-db.yaml");
               fs2.writeFileSync(fileDest, yaml.dump(fileText), 'utf-8', function (err) {
                 if (err) {
                   console.log(err.message);
