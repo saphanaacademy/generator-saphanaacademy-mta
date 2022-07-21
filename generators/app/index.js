@@ -452,6 +452,10 @@ module.exports = class extends Generator {
               let resHDISK = this.spawnCommandSync('cf', ['service-key', answers.get("projectName") + "-hdi", answers.get("projectName") + "-hdi-sk"], { stdio: 'pipe' });
               let stdoutHDISK = resHDISK.stdout.toString('utf8');
               let credentials = JSON.parse(stdoutHDISK.substring(stdoutHDISK.indexOf('{')));
+              if (credentials.hasOwnProperty('credentials')) {
+                // CF API can return different structure per OS
+                credentials = credentials.credentials;
+              }
               let stringData = credentials;
               let fileText = {
                 "apiVersion": "v1",
@@ -470,7 +474,9 @@ module.exports = class extends Generator {
                 }
               });
               let resApply = this.spawnCommandSync("kubectl", ["apply", "-f", fileDest, "-n", answers.get("namespace")], opt);
-              fs2.unlinkSync(fileDest);
+              if (resApply.status === 0) {
+                fs2.unlinkSync(fileDest);
+              }
               let VCAP_SERVICES = '{"hana":[{"label":"hana","plan":"hdi-shared","name":"' + answers.get("projectName") + '-hdi","tags":["hana","database","relational"],"credentials":' + JSON.stringify(credentials) + '}]}';
               fileText = {
                 "apiVersion": "v1",
@@ -491,7 +497,9 @@ module.exports = class extends Generator {
                 }
               });
               resApply = this.spawnCommandSync("kubectl", ["apply", "-f", fileDest, "-n", answers.get("namespace")], opt);
-              fs2.unlinkSync(fileDest);
+              if (resApply.status === 0) {
+                fs2.unlinkSync(fileDest);
+              }
             }
           }
         }
