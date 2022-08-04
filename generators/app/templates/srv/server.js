@@ -1,6 +1,5 @@
 const express = require('express');
 const app = express();
-const bodyParser = require('body-parser');
 <% if(app2appType === "access"){ -%>
 const axios = require('axios');
 <% } -%>
@@ -9,13 +8,13 @@ xsenv.loadEnv();
 <% if(authentication || hana){ -%>
 const services = xsenv.getServices({
 <% if(authentication){ -%>
-    uaa: { tag: 'xsuaa' }
+    uaa: { label: 'xsuaa' }
 <% } -%>
 <% if(hana){ -%>
 <% if(authentication){ -%>
     ,
 <% } -%>
-    hana: { tag: 'hana' }
+    hana: { label: 'hana' }
 <% } -%>
 });
 <% } -%>
@@ -42,7 +41,8 @@ const hdbext = require('@sap/hdbext');
 app.use(hdbext.middleware(services.hana));
 <% } -%>
 
-app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 app.get('/srv', function (req, res) {
 <% if(authorization){ -%>

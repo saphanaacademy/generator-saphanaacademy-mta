@@ -7,7 +7,6 @@
 <% } -%>
     "dependencies": {
         "express": "latest",
-        "body-parser": "latest",
         "@sap/xsenv": "latest"
 <% if(authentication){ -%>
         ,"@sap/xssec": "latest"

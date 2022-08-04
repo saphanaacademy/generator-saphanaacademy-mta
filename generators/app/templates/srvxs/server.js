@@ -18,14 +18,14 @@ var options = {
 
 <% if(authentication){ -%>
 try {
-	options = Object.assign(options, xsenv.getServices({ uaa: { tag: "xsuaa" } }));
+	options = Object.assign(options, xsenv.getServices({ uaa: { label: "xsuaa" } }));
 } catch (err) {
 	console.log("[WARN]", err.message);
 }
 <% } -%>
 
 try {
-	options = Object.assign(options, xsenv.getServices({ hana: { tag: "hana" } }));
+	options = Object.assign(options, xsenv.getServices({ hana: { label: "hana" } }));
 } catch (err) {
 	console.log("[WARN]", err.message);
 }
