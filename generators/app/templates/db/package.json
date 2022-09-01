@@ -1,10 +1,5 @@
 {
     "name": "<%= projectName %>-db",
-<% if(BTPRuntime === 'CF'){ -%>
-    "engines": {
-        "node": "^14"
-    },
-<% } -%>
     "dependencies": {
         "@sap/hdi-deploy": "latest"
     },

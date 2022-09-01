@@ -15,6 +15,7 @@ modules:
         - default-*.json
         - .env
         - "*node_modules*"
+        - package-lock.json
     parameters:
       memory: 128M
       disk-quota: 256M
@@ -33,6 +34,7 @@ modules:
         - default-*.json
         - .env
         - "*node_modules*"
+        - package-lock.json
     parameters:
       disk-quota: 512M
       memory: 256M
@@ -65,6 +67,7 @@ modules:
         - default-*.json
         - .env
         - "*node_modules*"
+        - package-lock.json
     parameters:
       disk-quota: 512M
       memory: 256M
@@ -80,13 +83,14 @@ modules:
 <% } -%>
 <% if(ui){ -%>
   - name: <%= projectName %>-app
-    type: html5
+    type: approuter.nodejs
     path: app
     build-parameters:
       ignore:
         - default-*.json
         - .env
         - "*node_modules*"
+        - package-lock.json
     parameters:
       disk-quota: 512M
       memory: 256M
