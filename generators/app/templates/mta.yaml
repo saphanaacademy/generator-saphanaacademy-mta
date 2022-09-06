@@ -19,6 +19,9 @@ modules:
     parameters:
       memory: 128M
       disk-quota: 256M
+<% if(customDomain !== ""){ -%>
+      domain: <%= customDomain %>
+<% } -%>
     requires:
 <% if(authentication){ -%>
       - name: <%= projectName %>-uaa
@@ -38,6 +41,9 @@ modules:
     parameters:
       disk-quota: 512M
       memory: 256M
+<% if(customDomain !== ""){ -%>
+      domain: <%= customDomain %>
+<% } -%>
     provides:
       - name: srv_api
         properties:
@@ -71,6 +77,9 @@ modules:
     parameters:
       disk-quota: 512M
       memory: 256M
+<% if(customDomain !== ""){ -%>
+      domain: <%= customDomain %>
+<% } -%>
     provides:
       - name: srvxs_api
         properties:
@@ -94,6 +103,9 @@ modules:
     parameters:
       disk-quota: 512M
       memory: 256M
+<% if(customDomain !== ""){ -%>
+      domain: <%= customDomain %>
+<% } -%>
     requires:
 <% if(authentication){ -%>
       - name: <%= projectName %>-uaa

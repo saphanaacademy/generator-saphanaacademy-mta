@@ -34,13 +34,6 @@ module.exports = class extends Generator {
       {
         when: response => response.BTPRuntime === "Kyma",
         type: "input",
-        name: "clusterDomain",
-        message: "What is the cluster domain of your SAP BTP, Kyma runtime?",
-        default: "0000000.kyma.ondemand.com"
-      },
-      {
-        when: response => response.BTPRuntime === "Kyma",
-        type: "input",
         name: "namespace",
         message: "What SAP BTP, Kyma runtime namespace will you be deploying to?",
         validate: (s) => {
@@ -187,6 +180,35 @@ module.exports = class extends Generator {
         default: true
       },
       {
+        type: "input",
+        name: "customDomain",
+        message: "Will you be using a wildcard custom domain (eg: app.domain.com)? If so please enter it here - or simply press enter for none.",
+        validate: (s) => {
+          if (s === "") {
+            return true;
+          }
+          if (/^[a-zA-Z0-9.-]*$/g.test(s)) {
+            return true;
+          }
+          return "Please only use alphanumeric characters for the custom domain.";
+        },
+        default: "",
+      },
+      {
+        when: response => response.BTPRuntime === "Kyma" && response.customDomain === "",
+        type: "input",
+        name: "clusterDomain",
+        message: "What is the cluster domain of your SAP BTP, Kyma runtime?",
+        default: "0000000.kyma.ondemand.com"
+      },
+      {
+        when: response => response.BTPRuntime === "Kyma" && response.customDomain !== "",
+        type: "input",
+        name: "gateway",
+        message: "What is the gateway for the custom domain in your SAP BTP, Kyma runtime?",
+        default: "gateway-name.namespace.svc.cluster.local"
+      },
+      {
         when: response => response.authentication === true && response.authorization === true,
         type: "confirm",
         name: "app2app",
@@ -240,9 +262,16 @@ module.exports = class extends Generator {
       }
       if (answers.BTPRuntime !== "Kyma") {
         answers.clusterDomain = "";
+        answers.gateway = "";
         answers.namespace = "";
         answers.dockerID = "";
         answers.buildCmd = "";
+      } else {
+        if (answers.customDomain !== "") {
+          answers.clusterDomain = answers.customDomain;
+        } else {
+          answers.gateway = "kyma-gateway.kyma-system.svc.cluster.local";
+        }
       }
       if (answers.apiGraph === false) {
         answers.apiGraphURL = "";

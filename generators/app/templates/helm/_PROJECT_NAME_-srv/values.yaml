@@ -1,7 +1,6 @@
 dockerID: <%= dockerID %>
-<% if(authentication){ -%>
 clusterDomain: <%= clusterDomain %>
-<% } -%>
+gateway: <%= gateway %>
 services:
   app:
     name: <%= projectName %>-app

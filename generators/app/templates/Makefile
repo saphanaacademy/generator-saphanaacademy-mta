@@ -3,21 +3,21 @@ build-db:
 <% if(buildCmd === 'pack'){ -%>
 	pack build <%= dockerID %>/<%= projectName %>-db:latest -p db -B paketobuildpacks/builder:base
 <% }else{ -%>
-	<%= buildCmd %> build -t <%= dockerID %>/<%= projectName %>-db:latest -f db/Dockerfile .
+	<%= buildCmd %> build --platform amd64 -t <%= dockerID %>/<%= projectName %>-db:latest -f db/Dockerfile .
 <% } -%>
 <% } -%>
 build-srv:
 <% if(buildCmd === 'pack'){ -%>
 	pack build <%= dockerID %>/<%= projectName %>-srv:latest -p srv -B paketobuildpacks/builder:base
 <% }else{ -%>
-	<%= buildCmd %> build -t <%= dockerID %>/<%= projectName %>-srv:latest -f srv/Dockerfile .
+	<%= buildCmd %> build -t --platform amd64 <%= dockerID %>/<%= projectName %>-srv:latest -f srv/Dockerfile .
 <% } -%>
 <% if(xsjs){ -%>
 build-srvxs:
 <% if(buildCmd === 'pack'){ -%>
 	pack build <%= dockerID %>/<%= projectName %>-srvxs:latest -p srvxs -B paketobuildpacks/builder:full
 <% }else{ -%>
-	<%= buildCmd %> build -t <%= dockerID %>/<%= projectName %>-srvxs:latest -f srvxs/Dockerfile .
+	<%= buildCmd %> build -t --platform amd64 <%= dockerID %>/<%= projectName %>-srvxs:latest -f srvxs/Dockerfile .
 <% } -%>
 <% } -%>
 <% if(ui){ -%>
@@ -25,7 +25,7 @@ build-app:
 <% if(buildCmd === 'pack'){ -%>
 	pack build <%= dockerID %>/<%= projectName %>-app:latest -p app -B paketobuildpacks/builder:base
 <% }else{ -%>
-	<%= buildCmd %> build -t <%= dockerID %>/<%= projectName %>-app:latest -f app/Dockerfile .
+	<%= buildCmd %> build --platform amd64 -t <%= dockerID %>/<%= projectName %>-app:latest -f app/Dockerfile .
 <% } -%>
 <% } -%>
 

@@ -1,4 +1,6 @@
 dockerID: <%= dockerID %>
+clusterDomain: <%= clusterDomain %>
+gateway: <%= gateway %>
 services:
   srvxs:
     name: <%= projectName %>-srvxs

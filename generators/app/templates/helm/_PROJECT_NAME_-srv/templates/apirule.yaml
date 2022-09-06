@@ -3,7 +3,7 @@ kind: APIRule
 metadata:
   name: {{ .Values.services.srv.name }}
 spec:
-  gateway: kyma-gateway.kyma-system.svc.cluster.local
+  gateway: {{ .Values.gateway }}
   rules:
     - path: /.*
       accessStrategies:
@@ -15,6 +15,6 @@ spec:
         - PUT
         - DELETE
   service:
-    host: {{ .Values.services.srv.name }}
+    host: {{ .Values.services.srv.name }}.{{ .Values.clusterDomain }}
     name: {{ .Values.services.srv.name }}
     port: {{ .Values.services.srv.service.port }}
