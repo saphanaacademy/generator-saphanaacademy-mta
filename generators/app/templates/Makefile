@@ -10,14 +10,14 @@ build-srv:
 <% if(buildCmd === 'pack'){ -%>
 	pack build <%= dockerID %>/<%= projectName %>-srv:latest -p srv -B paketobuildpacks/builder:base
 <% }else{ -%>
-	<%= buildCmd %> build -t --platform amd64 <%= dockerID %>/<%= projectName %>-srv:latest -f srv/Dockerfile .
+	<%= buildCmd %> build --platform amd64 -t <%= dockerID %>/<%= projectName %>-srv:latest -f srv/Dockerfile .
 <% } -%>
 <% if(xsjs){ -%>
 build-srvxs:
 <% if(buildCmd === 'pack'){ -%>
 	pack build <%= dockerID %>/<%= projectName %>-srvxs:latest -p srvxs -B paketobuildpacks/builder:full
 <% }else{ -%>
-	<%= buildCmd %> build -t --platform amd64 <%= dockerID %>/<%= projectName %>-srvxs:latest -f srvxs/Dockerfile .
+	<%= buildCmd %> build --platform amd64 -t <%= dockerID %>/<%= projectName %>-srvxs:latest -f srvxs/Dockerfile .
 <% } -%>
 <% } -%>
 <% if(ui){ -%>
