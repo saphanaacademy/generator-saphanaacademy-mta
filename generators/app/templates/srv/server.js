@@ -138,7 +138,35 @@ app.get('/srv/graph', async function (req, res) {
                     url: req.query.path || '<%= apiGraphId %>'
                 }
             );
-            res.status(200).json(res1.data);
+            let location = req.query.location || '';
+            if (location !== '') {
+                let res2 = await httpClient.executeHttpRequest(
+                    {
+                        destinationName: '<%= projectName %>-graph-api'
+<% if(authentication){ -%>
+                        ,
+                        jwt: retrieveJwt(req)
+<% } -%>
+                    },
+                    {
+                        method: 'PATCH',
+                        url: req.query.path || '<%= apiGraphId %>',
+                        headers: {
+                            "If-Match": res1.headers.etag
+                        },
+                        data: {
+                            "IncotermsTransferLocation": location,
+                            "IncotermsLocation1": location
+                        }
+                    },
+                    {
+                        fetchCsrfToken: false
+                    }
+                );
+                res.status(200).json(res2.data);
+            } else {
+                res.status(200).json(res1.data);
+            };
         } catch (err) {
             console.log(err.stack);
             res.status(500).send(err.message);
