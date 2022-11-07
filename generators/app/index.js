@@ -364,7 +364,7 @@ module.exports = class extends Generator {
                 if (!((file.substring(0, 4) === 'app/' || file.includes('helm/_PROJECT_NAME_-app')) && answers.get('ui') === false)) {
                   if (!((file.substring(0, 3) === 'db/' || file.includes('helm/_PROJECT_NAME_-db')) && answers.get('hana') === false)) {
                     if (!((file.substring(0, 6) === 'srvxs/' || file.includes('helm/_PROJECT_NAME_-srvxs')) && answers.get('xsjs') === false)) {
-                      if (!(file.includes('secret-hdi.yaml') && answers.get('hana') === false)) {
+                      if (!((file.includes('service-hdi.yaml') || file.includes('binding-hdi.yaml')) && answers.get('hana') === false)) {
                         if (!((file.includes('service-uaa.yaml') || file.includes('binding-uaa.yaml')) && answers.get('authentication') === false && answers.get('apiS4HC') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false)) {
                           if (!((file.includes('service-dest.yaml') || file.includes('binding-dest.yaml')) && answers.get('apiS4HC') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false)) {
                             if (!((file === 'mta.yaml' || file === 'xs-security.json') && answers.get('BTPRuntime') !== 'CF')) {
@@ -451,88 +451,6 @@ module.exports = class extends Generator {
           }
         }
       }
-      if (answers.get("hana") === true) {
-        // create HDI Container & service key & secrets
-        let resHDICreate = this.spawnCommandSync('cf', ['create-service', 'hana', 'hdi-shared', answers.get("projectName") + "-hdi"], opt);
-        if (resHDICreate.status === 0) {
-          let status = 'create in progress';
-          do {
-            await new Promise(resolve => setTimeout(resolve, 5000));
-            let resHDIStatus = this.spawnCommandSync('cf', ['service', answers.get("projectName") + "-hdi"], { stdio: 'pipe' });
-            let stdoutHDIStatus = resHDIStatus.stdout.toString('utf8');
-            var field_strings = stdoutHDIStatus.split(/[\r\n]*---[\r\n]*/);
-            for (var i = 0; i < field_strings.length; i++) {
-              if (field_strings[i] == '') {
-                continue;
-              }
-              var props_strings = field_strings[i].split('\n');
-              for (var j = 0; j < props_strings.length; j++) {
-                var keyvalue = props_strings[j].split(':');
-                if (keyvalue[0].trim().toUpperCase() === 'STATUS') {
-                  status = keyvalue[1].trim();
-                  this.log(status);
-                }
-              }
-            }
-          } while (status === 'create in progress');
-          if (status === 'create succeeded') {
-            let resHDICreateSK = this.spawnCommandSync('cf', ['create-service-key', answers.get("projectName") + "-hdi", answers.get("projectName") + "-hdi-sk"], opt);
-            if (resHDICreateSK.status === 0) {
-              let resHDISK = this.spawnCommandSync('cf', ['service-key', answers.get("projectName") + "-hdi", answers.get("projectName") + "-hdi-sk"], { stdio: 'pipe' });
-              let stdoutHDISK = resHDISK.stdout.toString('utf8');
-              let credentials = JSON.parse(stdoutHDISK.substring(stdoutHDISK.indexOf('{')));
-              if (credentials.hasOwnProperty('credentials')) {
-                // CF API can return different structure per OS
-                credentials = credentials.credentials;
-              }
-              let stringData = credentials;
-              let fileText = {
-                "apiVersion": "v1",
-                "kind": "Secret",
-                "metadata": {
-                  "name": answers.get("projectName") + "-hdi-binding-secret"
-                },
-                "type": "Opaque",
-                stringData
-              };
-              let fileDest = path.join(this.destinationRoot(), "secret-hdi.yaml");
-              fs2.writeFileSync(fileDest, yaml.dump(fileText), 'utf-8', function (err) {
-                if (err) {
-                  console.log(err.message);
-                  return;
-                }
-              });
-              let resApply = this.spawnCommandSync("kubectl", ["apply", "-f", fileDest, "-n", answers.get("namespace")], opt);
-              if (resApply.status === 0) {
-                fs2.unlinkSync(fileDest);
-              }
-              let VCAP_SERVICES = '{"hana":[{"label":"hana","plan":"hdi-shared","name":"' + answers.get("projectName") + '-hdi","tags":["hana","database","relational"],"credentials":' + JSON.stringify(credentials) + '}]}';
-              fileText = {
-                "apiVersion": "v1",
-                "kind": "Secret",
-                "metadata": {
-                  "name": answers.get("projectName") + "-db-binding-secret"
-                },
-                "type": "Opaque",
-                "stringData": {
-                  VCAP_SERVICES
-                }
-              };
-              fileDest = path.join(this.destinationRoot(), "secret-db.yaml");
-              fs2.writeFileSync(fileDest, yaml.dump(fileText), 'utf-8', function (err) {
-                if (err) {
-                  console.log(err.message);
-                  return;
-                }
-              });
-              resApply = this.spawnCommandSync("kubectl", ["apply", "-f", fileDest, "-n", answers.get("namespace")], opt);
-              if (resApply.status === 0) {
-                fs2.unlinkSync(fileDest);
-              }
-            }
-          }
-        }
-      }
       if (answers.get("buildDeploy")) {
         let resPush = this.spawnCommandSync("make", ["docker-push"], opt);
         if (resPush.status === 0) {
@@ -566,10 +484,6 @@ module.exports = class extends Generator {
   end() {
     var answers = this.config;
     this.log("");
-    if (answers.get('BTPRuntime') === "Kyma" && answers.get("hana")) {
-      this.log("SAP HANA Cloud HDI Container, service key and SAP BTP, Kyma runtime secrets have been created.");
-      this.log("");
-    }
     if (answers.get("authentication") && answers.get("apiGraph") && answers.get("apiGraphSameSubaccount") === false) {
       this.log("Important: Trust needs to be configured when not deploying to the subaccount of the SAP Graph service instance!");
       this.log("");
