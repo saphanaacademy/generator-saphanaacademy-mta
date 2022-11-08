@@ -59,6 +59,63 @@ module.exports = class extends Generator {
       },
       {
         when: response => response.BTPRuntime === "Kyma",
+        type: "input",
+        name: "dockerRepositoryName",
+        message: "What is your Docker repository name? Leave blank to create a separate repository for each microservice.",
+        validate: (s) => {
+          if ((/^[a-z0-9-_]*$/g.test(s) && s.length >= 2 && s.length <= 225) || s === "") {
+            return true;
+          }
+          return "Your Docker repository name must be between 2 and 255 characters long and can only contain numbers, lowercase letters, hyphens (-), and underscores (_).";
+        },
+        default: ""
+      },
+      {
+        when: response => response.BTPRuntime === "Kyma",
+        type: "list",
+        name: "dockerRepositoryVisibility",
+        message: "What is your Docker repository visibility?",
+        choices: [{ name: "Public (Appears in Docker Hub search results)", value: "public" }, { name: "Private (Only visible to you)", value: "private" }],
+        default: "public"
+      },
+      {
+        when: response => response.BTPRuntime === "Kyma" && response.dockerRepositoryVisibility === "private",
+        type: "input",
+        name: "dockerServerURL",
+        message: "What is your Docker Server URL?",
+        default: "https://index.docker.io/v1/"
+      },
+      {
+        when: response => response.BTPRuntime === "Kyma" && response.dockerRepositoryVisibility === "private",
+        type: "input",
+        name: "dockerEmailAddress",
+        message: "What is your Docker Email Address?",
+        default: ""
+      },
+      {
+        when: response => response.BTPRuntime === "Kyma" && response.dockerRepositoryVisibility === "private",
+        type: "password",
+        name: "dockerPassword",
+        message: "What is your Docker Personal Access Token or Password?",
+        mask: "*",
+        default: ""
+      },
+      {
+        when: response => response.BTPRuntime === "Kyma" && response.dockerRepositoryVisibility === "private",
+        type: "input",
+        name: "dockerRegistrySecretName",
+        message: "What name would you like for the Docker Registry Secret?",
+        default: "docker-registry-config"
+      },
+      {
+        when: response => response.BTPRuntime === "Kyma",
+        type: "input",
+        name: "kubeconfig",
+        message: "What is the path of your Kubeconfig file? Leave blank to use the KUBECONFIG environment variable instead.",
+        default: ""
+      },
+      {
+        when: response => response.BTPRuntime === "Kyma",
         type: "list",
         name: "buildCmd",
         message: "How would you like to build container images?",
@@ -265,6 +322,9 @@ module.exports = class extends Generator {
         answers.gateway = "";
         answers.namespace = "";
         answers.dockerID = "";
+        answers.dockerRepositoryName = "";
+        answers.dockerRepositoryVisibility = "";
+        answers.kubeconfig = "";
         answers.buildCmd = "";
       } else {
         if (answers.customDomain !== "") {
@@ -272,6 +332,12 @@ module.exports = class extends Generator {
         } else {
           answers.gateway = "kyma-gateway.kyma-system.svc.cluster.local";
         }
+      }
+      if (answers.dockerRepositoryVisibility !== "private") {
+        answers.dockerServerURL = "";
+        answers.dockerEmailAddress = "";
+        answers.dockerPassword = "";
+        answers.dockerRegistrySecretName = "";
       }
       if (answers.apiGraph === false) {
         answers.apiGraphURL = "";
@@ -398,15 +464,35 @@ module.exports = class extends Generator {
       // Kyma runtime
       const yaml = require('js-yaml');
       const fs2 = require('fs');
+      let cmd;
+      if (answers.get("dockerRepositoryVisibility") === "private") {
+        cmd = ["create", "secret", "docker-registry", answers.get("dockerRegistrySecretName"), "--docker-server", answers.get("dockerServerURL"), "--docker-username", answers.get("dockerID"), "--docker-email", answers.get("dockerEmailAddress"), "--docker-password", answers.get("dockerPassword"), "-n", answers.get("namespace")];
+        if(answers.get("kubeconfig") !== "") {
+          cmd.push("--kubeconfig", answers.get("kubeconfig"));
+        }
+        this.spawnCommandSync("kubectl", cmd, opt);
+      }
       if (answers.get("cicd") === true) {
         // generate service account & kubeconfig
         let fileDest = path.join(this.destinationRoot(), "sa-cicd.yaml");
-        let resApply = this.spawnCommandSync("kubectl", ["apply", "-f", fileDest, "-n", answers.get("namespace")], opt);
+        cmd = ["apply", "-f", fileDest, "-n", answers.get("namespace")];
+        if(answers.get("kubeconfig") !== "") {
+          cmd.push("--kubeconfig", answers.get("kubeconfig"));
+        }
+        let resApply = this.spawnCommandSync("kubectl", cmd, opt);
         if (resApply.status === 0) {
           opt.stdio = [process.stdout];
-          let resSecret = this.spawnCommandSync("kubectl", ["get", "sa", answers.get("projectName") + "-cicd", "-n", answers.get("namespace"), "-o", "jsonpath='{.secrets[0].name}'"], opt);
+          cmd = ["get", "sa", answers.get("projectName") + "-cicd", "-n", answers.get("namespace"), "-o", "jsonpath='{.secrets[0].name}'"];
+          if(answers.get("kubeconfig") !== "") {
+            cmd.push("--kubeconfig", answers.get("kubeconfig"));
+          }
+          let resSecret = this.spawnCommandSync("kubectl", cmd, opt);
           if (resSecret.status === 0) {
-            let resSecretDetail = this.spawnCommandSync("kubectl", ["get", "secret/" + resSecret.stdout.toString().replace(/'/g, ''), "-n", answers.get("namespace"), "-o", "jsonpath='{.data}'"], opt);
+            cmd = ["get", "secret/" + resSecret.stdout.toString().replace(/'/g, ''), "-n", answers.get("namespace"), "-o", "jsonpath='{.data}'"];
+            if(answers.get("kubeconfig") !== "") {
+              cmd.push("--kubeconfig", answers.get("kubeconfig"));
+            }
+            let resSecretDetail = this.spawnCommandSync("kubectl", cmd, opt);
             let secretDetail = resSecretDetail.stdout.toString();
             secretDetail = JSON.parse(secretDetail.substring(1).substring(0, secretDetail.length - 2));
             let fileText = {

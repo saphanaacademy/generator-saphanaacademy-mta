@@ -25,6 +25,10 @@ spec:
             - name: <%= projectName %>-hdi
               mountPath: "/etc/secrets/sapcp/hana/<%= projectName %>-hdi"
               readOnly: true
+<% if(dockerRepositoryVisibility === 'private'){ -%>
+      imagePullSecrets:
+        - name: {{ .Values.jobs.db.image.imagePullSecretName }}
+<% } -%>
       volumes:
         - name: <%= projectName %>-hdi
           secret:

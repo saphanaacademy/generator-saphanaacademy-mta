@@ -5,10 +5,17 @@ services:
   app:
     name: <%= projectName %>-app
     image:
+<% if(dockerRepositoryName !== ''){ -%>
+      repository: <%= dockerRepositoryName %>
+      tag: "<%= projectName %>-app"
+<% } else { -%>
       repository: <%= projectName %>-app
       tag: "latest"
+<% } -%>
       pullPolicy: Always
-      imagePullSecretName: docker-config
+<% if(dockerRepositoryVisibility === 'private'){ -%>
+      imagePullSecretName: <%= dockerRegistrySecretName %>
+<% } -%>
       port: 5000
     service:
       port: 5000

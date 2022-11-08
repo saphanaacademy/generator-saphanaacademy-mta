@@ -3,9 +3,16 @@ jobs:
   db:
     name: <%= projectName %>-db
     image:
+<% if(dockerRepositoryName !== ''){ -%>
+      repository: <%= dockerRepositoryName %>
+      tag: "<%= projectName %>-db"
+<% } else { -%>
       repository: <%= projectName %>-db
       tag: "latest"
+<% } -%>
       pullPolicy: Always
-      imagePullSecretName: docker-config
+<% if(dockerRepositoryVisibility === 'private'){ -%>
+      imagePullSecretName: <%= dockerRegistrySecretName %>
+<% } -%>
   hdi:
     bindingSecretName: <%= projectName %>-hdi-binding-secret

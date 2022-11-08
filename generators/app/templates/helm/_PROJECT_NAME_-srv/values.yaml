@@ -7,10 +7,17 @@ services:
   srv:
     name: <%= projectName %>-srv
     image:
+<% if(dockerRepositoryName !== ''){ -%>
+      repository: <%= dockerRepositoryName %>
+      tag: "<%= projectName %>-srv"
+<% } else { -%>
       repository: <%= projectName %>-srv
       tag: "latest"
+<% } -%>
       pullPolicy: Always
-      imagePullSecretName: docker-config
+<% if(dockerRepositoryVisibility === 'private'){ -%>
+      imagePullSecretName: <%= dockerRegistrySecretName %>
+<% } -%>
       port: 5001
     service:
       port: 5001

@@ -5,10 +5,17 @@ services:
   srvxs:
     name: <%= projectName %>-srvxs
     image:
+<% if(dockerRepositoryName !== ''){ -%>
+      repository: <%= dockerRepositoryName %>
+      tag: "<%= projectName %>-srvxs"
+<% } else { -%>
       repository: <%= projectName %>-srvxs
       tag: "latest"
+<% } -%>
       pullPolicy: Always
-      imagePullSecretName: docker-config
+<% if(dockerRepositoryVisibility === 'private'){ -%>
+      imagePullSecretName: <%= dockerRegistrySecretName %>
+<% } -%>
       port: 5002
     service:
       port: 5002
