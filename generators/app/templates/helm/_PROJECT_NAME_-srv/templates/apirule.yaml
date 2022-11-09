@@ -1,9 +1,10 @@
-apiVersion: gateway.kyma-project.io/v1alpha1
+apiVersion: gateway.kyma-project.io/v1beta1
 kind: APIRule
 metadata:
   name: {{ .Values.services.srv.name }}
 spec:
   gateway: {{ .Values.gateway }}
+  host: {{ .Values.services.srv.name }}.{{ .Values.clusterDomain }}
   rules:
     - path: /.*
       accessStrategies:
@@ -15,6 +16,5 @@ spec:
         - PUT
         - DELETE
   service:
-    host: {{ .Values.services.srv.name }}.{{ .Values.clusterDomain }}
     name: {{ .Values.services.srv.name }}
     port: {{ .Values.services.srv.service.port }}
