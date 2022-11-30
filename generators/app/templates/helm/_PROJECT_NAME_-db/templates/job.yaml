@@ -19,11 +19,13 @@ spec:
           name: {{ .Values.jobs.db.name }}
           imagePullPolicy: {{ .Values.jobs.db.image.pullPolicy }}
           env:
+            - name: SERVICE_BINDING_ROOT
+              value: /bindings
             - name: EXIT
               value: 'true'
           volumeMounts:
             - name: <%= projectName %>-hdi
-              mountPath: "/etc/secrets/sapcp/hana/<%= projectName %>-hdi"
+              mountPath: "/bindings/<%= projectName %>-hdi"
               readOnly: true
 <% if(dockerRepositoryVisibility === 'private'){ -%>
       imagePullSecrets:

@@ -30,21 +30,24 @@ spec:
             - name: http
               containerPort: {{ .Values.services.srv.image.port }}
 <% if(authentication || apiS4HC || hana || apiGraph || apiDest){ -%>
+          env:
+            - name: SERVICE_BINDING_ROOT
+              value: /bindings
           volumeMounts:
 <% } -%>
 <% if(authentication || apiS4HC || apiGraph || apiDest){ -%>
             - name: <%= projectName %>-uaa
-              mountPath: "/etc/secrets/sapcp/xsuaa/<%= projectName %>-uaa"
+              mountPath: "/bindings/<%= projectName %>-uaa"
               readOnly: true
 <% } -%>
 <% if(apiS4HC || apiGraph || apiDest){ -%>
             - name: <%= projectName %>-dest
-              mountPath: "/etc/secrets/sapcp/destination/<%= projectName %>-dest"
+              mountPath: "/bindings/<%= projectName %>-dest"
               readOnly: true
 <% } -%>
 <% if(hana){ -%>
             - name: <%= projectName %>-hdi
-              mountPath: "/etc/secrets/sapcp/hana/<%= projectName %>-hdi"
+              mountPath: "/bindings/<%= projectName %>-hdi"
               readOnly: true
 <% } -%>
 <% if(dockerRepositoryVisibility === 'private'){ -%>

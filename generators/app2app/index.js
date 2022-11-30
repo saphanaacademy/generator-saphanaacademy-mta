@@ -118,7 +118,7 @@ module.exports = class extends Generator {
                 }
                 fs2.writeFile(fileDest, YAML.dump(fileYAML), "utf8", function (err) {
                     if (err) {
-                        thisf.log(err.message);
+                        this.log(err.message);
                         return;
                     }
                 });
@@ -151,7 +151,7 @@ module.exports = class extends Generator {
                 }
                 fs2.writeFile(fileDest, JSON.stringify(fileJSON, null, 2), "utf8", function (err) {
                     if (err) {
-                        thisf.log(err.message);
+                        this.log(err.message);
                         return;
                     }
                 });
@@ -161,7 +161,7 @@ module.exports = class extends Generator {
             this.log("");
             this.log("You can update the xsuaa service instance as follows without needing to build & deploy the entire project:");
             if (this.config.get("BTPRuntime") === "Kyma") {
-                this.log("  helm upgrade " + answers.get("projectName") + "-srv helm/" + answers.get("projectName") + "-srv -f helm/" + answers.get("projectName") + "-srv/templates/service-uaa.yaml");
+                this.log("  helm upgrade " + answers.get("projectName") + "-srv helm/" + answers.get("projectName") + "-srv -f helm/" + answers.get("projectName") + "-srv/templates/service-uaa.yaml -n " + answers.get("namespace"));
             } else {
                 this.log("  cf update-service " + answers.get("projectName") + "-uaa -c xs-security.json");
             }

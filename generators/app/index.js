@@ -239,7 +239,7 @@ module.exports = class extends Generator {
       {
         type: "input",
         name: "customDomain",
-        message: "Will you be using a wildcard custom domain (eg: app.domain.com)? If so please enter it here - or simply press enter for none.",
+        message: "Will you be using a wildcard custom domain (eg: apps.domain.com)? If so please enter the custom domain name here. Leave blank to use the platform default.",
         validate: (s) => {
           if (s === "") {
             return true;
@@ -425,24 +425,22 @@ module.exports = class extends Generator {
       .forEach((file) => {
         if (!(file.includes('.DS_Store'))) {
           if (!((file === 'Jenkinsfile' || file.includes('.pipeline') || file.includes('-cicd.')) && answers.get('cicd') === false)) {
-            if (!((file.substring(0, 5) === 'helm/' || file.includes('/Dockerfile') || file === 'dotdockerignore' || file === 'Makefile') && answers.get('BTPRuntime') !== 'Kyma')) {
-              if (!((file.includes('-cicd.') || file.substring(0, 5) === 'helm/') && answers.get('BTPRuntime') !== 'Kyma')) {
-                if (!((file.substring(0, 4) === 'app/' || file.includes('helm/_PROJECT_NAME_-app')) && answers.get('ui') === false)) {
-                  if (!((file.substring(0, 3) === 'db/' || file.includes('helm/_PROJECT_NAME_-db')) && answers.get('hana') === false)) {
-                    if (!((file.substring(0, 6) === 'srvxs/' || file.includes('helm/_PROJECT_NAME_-srvxs')) && answers.get('xsjs') === false)) {
-                      if (!((file.includes('service-hdi.yaml') || file.includes('binding-hdi.yaml')) && answers.get('hana') === false)) {
-                        if (!((file.includes('service-uaa.yaml') || file.includes('binding-uaa.yaml')) && answers.get('authentication') === false && answers.get('apiS4HC') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false)) {
-                          if (!((file.includes('service-dest.yaml') || file.includes('binding-dest.yaml')) && answers.get('apiS4HC') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false)) {
-                            if (!((file === 'mta.yaml' || file === 'xs-security.json') && answers.get('BTPRuntime') !== 'CF')) {
-                              if (!(file === 'xs-security.json' && (answers.get('authentication') === false && answers.get('apiS4HC') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false))) {
-                                const sOrigin = this.templatePath(file);
-                                let fileDest = file;
-                                fileDest = fileDest.replace('_PROJECT_NAME_', answers.get('projectName'));
-                                fileDest = fileDest.replace('dotgitignore', '.gitignore');
-                                fileDest = fileDest.replace('dotdockerignore', '.dockerignore');
-                                const sTarget = this.destinationPath(fileDest);
-                                this.fs.copyTpl(sOrigin, sTarget, this.config.getAll());
-                              }
+            if (!((file.substring(0, 5) === 'helm/' || file.includes('/Dockerfile') || file === 'dotdockerignore' || file === 'Makefile' || file.includes('-cicd.')) && answers.get('BTPRuntime') !== 'Kyma')) {
+              if (!((file.substring(0, 4) === 'app/' || file.includes('helm/_PROJECT_NAME_-app')) && answers.get('ui') === false)) {
+                if (!((file.substring(0, 3) === 'db/' || file.includes('helm/_PROJECT_NAME_-db')) && answers.get('hana') === false)) {
+                  if (!((file.substring(0, 6) === 'srvxs/' || file.includes('helm/_PROJECT_NAME_-srvxs')) && answers.get('xsjs') === false)) {
+                    if (!((file.includes('service-hdi.yaml') || file.includes('binding-hdi.yaml')) && answers.get('hana') === false)) {
+                      if (!((file.includes('service-uaa.yaml') || file.includes('binding-uaa.yaml')) && answers.get('authentication') === false && answers.get('apiS4HC') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false)) {
+                        if (!((file.includes('service-dest.yaml') || file.includes('binding-dest.yaml')) && answers.get('apiS4HC') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false)) {
+                          if (!((file === 'mta.yaml' || file === 'xs-security.json') && answers.get('BTPRuntime') !== 'CF')) {
+                            if (!(file === 'xs-security.json' && (answers.get('authentication') === false && answers.get('apiS4HC') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false))) {
+                              const sOrigin = this.templatePath(file);
+                              let fileDest = file;
+                              fileDest = fileDest.replace('_PROJECT_NAME_', answers.get('projectName'));
+                              fileDest = fileDest.replace('dotgitignore', '.gitignore');
+                              fileDest = fileDest.replace('dotdockerignore', '.dockerignore');
+                              const sTarget = this.destinationPath(fileDest);
+                              this.fs.copyTpl(sOrigin, sTarget, this.config.getAll());
                             }
                           }
                         }
@@ -467,7 +465,7 @@ module.exports = class extends Generator {
       let cmd;
       if (answers.get("dockerRepositoryVisibility") === "private" && !(answers.get("dockerEmailAddress") === "" && answers.get("dockerPassword") === "")) {
         cmd = ["create", "secret", "docker-registry", answers.get("dockerRegistrySecretName"), "--docker-server", answers.get("dockerServerURL"), "--docker-username", answers.get("dockerID"), "--docker-email", answers.get("dockerEmailAddress"), "--docker-password", answers.get("dockerPassword"), "-n", answers.get("namespace")];
-        if(answers.get("kubeconfig") !== "") {
+        if (answers.get("kubeconfig") !== "") {
           cmd.push("--kubeconfig", answers.get("kubeconfig"));
         }
         this.spawnCommandSync("kubectl", cmd, opt);
@@ -476,20 +474,20 @@ module.exports = class extends Generator {
         // generate service account & kubeconfig
         let fileDest = path.join(this.destinationRoot(), "sa-cicd.yaml");
         cmd = ["apply", "-f", fileDest, "-n", answers.get("namespace")];
-        if(answers.get("kubeconfig") !== "") {
+        if (answers.get("kubeconfig") !== "") {
           cmd.push("--kubeconfig", answers.get("kubeconfig"));
         }
         let resApply = this.spawnCommandSync("kubectl", cmd, opt);
-        if (resApply.status === 0) {
+        if (resApply.exitCode === 0) {
           opt.stdio = [process.stdout];
           cmd = ["get", "sa", answers.get("projectName") + "-cicd", "-n", answers.get("namespace"), "-o", "jsonpath='{.secrets[0].name}'"];
-          if(answers.get("kubeconfig") !== "") {
+          if (answers.get("kubeconfig") !== "") {
             cmd.push("--kubeconfig", answers.get("kubeconfig"));
           }
           let resSecret = this.spawnCommandSync("kubectl", cmd, opt);
-          if (resSecret.status === 0) {
+          if (resSecret.exitCode === 0) {
             cmd = ["get", "secret/" + resSecret.stdout.toString().replace(/'/g, ''), "-n", answers.get("namespace"), "-o", "jsonpath='{.data}'"];
-            if(answers.get("kubeconfig") !== "") {
+            if (answers.get("kubeconfig") !== "") {
               cmd.push("--kubeconfig", answers.get("kubeconfig"));
             }
             let resSecretDetail = this.spawnCommandSync("kubectl", cmd, opt);
@@ -539,7 +537,7 @@ module.exports = class extends Generator {
       }
       if (answers.get("buildDeploy")) {
         let resPush = this.spawnCommandSync("make", ["docker-push"], opt);
-        if (resPush.status === 0) {
+        if (resPush.exitCode === 0) {
           this.spawnCommandSync("make", ["helm-deploy"], opt);
         }
       } else {
@@ -554,7 +552,7 @@ module.exports = class extends Generator {
       var mta = "mta_archives/" + answers.get("projectName") + "_0.0.1.mtar";
       if (answers.get("buildDeploy")) {
         let resBuild = this.spawnCommandSync("mbt", ["build"], opt);
-        if (resBuild.status === 0) {
+        if (resBuild.exitCode === 0) {
           this.spawnCommandSync("cf", ["deploy", mta], opt);
         }
       } else {

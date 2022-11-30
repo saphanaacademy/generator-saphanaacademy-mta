@@ -11,9 +11,11 @@ spec:
         - config: {}
           handler: noop
       methods:
+        - HEAD
         - GET
         - POST
         - PUT
+        - PATCH
         - DELETE
   service:
     name: {{ .Values.services.srv.name }}

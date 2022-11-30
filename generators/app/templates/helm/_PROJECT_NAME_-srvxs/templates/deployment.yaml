@@ -29,14 +29,17 @@ spec:
           ports:
             - name: http
               containerPort: {{ .Values.services.srvxs.image.port }}
+          env:
+            - name: SERVICE_BINDING_ROOT
+              value: /bindings
           volumeMounts:
 <% if(authentication){ -%>
             - name: <%= projectName %>-uaa
-              mountPath: "/etc/secrets/sapcp/xsuaa/<%= projectName %>-uaa"
+              mountPath: "/bindings/<%= projectName %>-uaa"
               readOnly: true
 <% } -%>
             - name: <%= projectName %>-hdi
-              mountPath: "/etc/secrets/sapcp/hana/<%= projectName %>-hdi"
+              mountPath: "/bindings/<%= projectName %>-hdi"
               readOnly: true
 <% if(dockerRepositoryVisibility === 'private'){ -%>
       imagePullSecrets:

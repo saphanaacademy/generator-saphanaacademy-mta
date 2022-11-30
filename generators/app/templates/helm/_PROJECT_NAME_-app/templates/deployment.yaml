@@ -6,7 +6,7 @@ metadata:
     {{- include "app.labels" . | nindent 4 }}
     app: {{ .Values.services.app.name }}
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: {{ .Values.services.app.name }}
@@ -29,15 +29,15 @@ spec:
           ports:
             - name: http
               containerPort: {{ .Values.services.app.image.port }}
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.services.app.name }}
 <% if(authentication){ -%>
           volumeMounts:
             - name: <%= projectName %>-uaa
               mountPath: "/etc/secrets/sapcp/xsuaa/<%= projectName %>-uaa"
               readOnly: true
 <% } -%>
-          envFrom:
-            - configMapRef:
-                name: {{ .Values.services.app.name }}
 <% if(dockerRepositoryVisibility === 'private'){ -%>
       imagePullSecrets:
         - name: {{ .Values.services.app.image.imagePullSecretName }}
