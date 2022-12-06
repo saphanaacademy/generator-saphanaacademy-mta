@@ -6,7 +6,8 @@ metadata:
     {{- include "app.labels" . | nindent 4 }}
     app: {{ .Values.services.app.name }}
 spec:
-  replicas: 2
+  replicas: <% if(externalSessionManagement){ -%>2<% }else{ -%>1<% } -%>
+
   selector:
     matchLabels:
       app: {{ .Values.services.app.name }}
@@ -32,22 +33,42 @@ spec:
           env:
             - name: SERVICE_BINDING_ROOT
               value: /bindings
+<% if(externalSessionManagement){ -%>
+            - name: EXT_SESSION_MGT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.services.redis.bindingSecretName }}
+                  key: EXT_SESSION_MGT
+<% } -%>
           envFrom:
             - configMapRef:
                 name: {{ .Values.services.app.name }}
-<% if(authentication){ -%>
+<% if(authentication || externalSessionManagement){ -%>
           volumeMounts:
+<% } -%>
+<% if(authentication){ -%>
             - name: <%= projectName %>-uaa
               mountPath: "/bindings/<%= projectName %>-uaa"
               readOnly: true
+<% } -%>
+<% if(externalSessionManagement){ -%>
+            - name: <%= projectName %>-redis
+              mountPath: "/bindings/<%= projectName %>-redis"
 <% } -%>
 <% if(dockerRepositoryVisibility === 'private'){ -%>
       imagePullSecrets:
         - name: {{ .Values.services.app.image.imagePullSecretName }}
 <% } -%>
-<% if(authentication){ -%>
+<% if(authentication || externalSessionManagement){ -%>
       volumes:
+<% } -%>
+<% if(authentication){ -%>
         - name: <%= projectName %>-uaa
           secret:
             secretName: {{ .Values.services.uaa.bindingSecretName }}
+<% } -%>
+<% if(externalSessionManagement){ -%>
+        - name: <%= projectName %>-redis
+          secret:
+            secretName: {{ .Values.services.redis.bindingSecretName }}
 <% } -%>
