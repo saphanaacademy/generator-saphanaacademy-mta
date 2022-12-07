@@ -5,7 +5,6 @@ const glob = require("glob");
 
 module.exports = class extends Generator {
   initializing() {
-    this.log('Destination Root:', this.destinationRoot());
     process.chdir(this.destinationRoot());
   }
 
