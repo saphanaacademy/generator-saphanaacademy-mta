@@ -64,32 +64,6 @@ modules:
       - name: <%= projectName %>-conn
 <% } -%>
 
-<% if(xsjs){ -%>
-  - name: <%= projectName %>-srvxs
-    type: nodejs
-    path: srvxs
-    build-parameters:
-      ignore:
-        - default-*.json
-        - .env
-        - "*node_modules*"
-        - package-lock.json
-    parameters:
-      disk-quota: 512M
-      memory: 256M
-<% if(customDomain !== ""){ -%>
-      domain: <%= customDomain %>
-<% } -%>
-    provides:
-      - name: srvxs_api
-        properties:
-          url: ${default-url}
-    requires:
-<% if(authentication){ -%>
-      - name: <%= projectName %>-uaa
-<% } -%>
-      - name: <%= projectName %>-hdi
-<% } -%>
 <% if(ui){ -%>
   - name: <%= projectName %>-app
     type: approuter.nodejs
@@ -117,16 +91,6 @@ modules:
           url: ~{url}
 <% if(authentication){ -%>
           forwardAuthToken: true
-<% } -%>
-<% if(xsjs){ -%>
-      - name: srvxs_api
-        group: destinations
-        properties:
-          name: srvxs
-          url: ~{url}
-<% if(authentication){ -%>
-          forwardAuthToken: true
-<% } -%>
 <% } -%>
 <% } -%>
 

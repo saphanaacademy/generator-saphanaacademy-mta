@@ -20,7 +20,7 @@ module.exports = class extends Generator {
           }
           return "Please only use alphanumeric characters for the project name.";
         },
-        default: "app",
+        default: "app"
       },
       {
         type: "confirm",
@@ -207,13 +207,6 @@ module.exports = class extends Generator {
         default: false
       },
       {
-        when: response => response.hana === true,
-        type: "confirm",
-        name: "xsjs",
-        message: "Would you like to use the XSJS Compatibility Layer?",
-        default: false
-      },
-      {
         type: "confirm",
         name: "authentication",
         message: "Would you like authentication?",
@@ -365,9 +358,6 @@ module.exports = class extends Generator {
         answers.apiSACTokenURL = "";
         answers.apiSACAudience = "";
       }
-      if (answers.hana === false) {
-        answers.xsjs = false;
-      }
       if (answers.authentication === false) {
         answers.authorization = false;
         answers.app2app = false;
@@ -443,21 +433,19 @@ module.exports = class extends Generator {
             if (!((file.substring(0, 5) === 'helm/' || file.includes('/Dockerfile') || file === 'dotdockerignore' || file === 'Makefile' || file.includes('-cicd.')) && answers.get('BTPRuntime') !== 'Kyma')) {
               if (!((file.substring(0, 4) === 'app/' || file.includes('helm/_PROJECT_NAME_-app')) && answers.get('ui') === false)) {
                 if (!((file.substring(0, 3) === 'db/' || file.includes('helm/_PROJECT_NAME_-db')) && answers.get('hana') === false)) {
-                  if (!((file.substring(0, 6) === 'srvxs/' || file.includes('helm/_PROJECT_NAME_-srvxs')) && answers.get('xsjs') === false)) {
-                    if (!((file.includes('service-hdi.yaml') || file.includes('binding-hdi.yaml')) && answers.get('hana') === false)) {
-                      if (!((file.includes('service-uaa.yaml') || file.includes('binding-uaa.yaml')) && answers.get('authentication') === false && answers.get('apiS4HC') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false)) {
-                        if (!((file.includes('service-dest.yaml') || file.includes('binding-dest.yaml')) && answers.get('apiS4HC') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false)) {
-                          if (!((file.includes('-redis.yaml') || file.includes('destinationrule.yaml')) && answers.get('externalSessionManagement') === false)) {
-                            if (!((file === 'mta.yaml' || file === 'xs-security.json') && answers.get('BTPRuntime') !== 'CF')) {
-                              if (!(file === 'xs-security.json' && (answers.get('authentication') === false && answers.get('apiS4HC') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false))) {
-                                const sOrigin = this.templatePath(file);
-                                let fileDest = file;
-                                fileDest = fileDest.replace('_PROJECT_NAME_', answers.get('projectName'));
-                                fileDest = fileDest.replace('dotgitignore', '.gitignore');
-                                fileDest = fileDest.replace('dotdockerignore', '.dockerignore');
-                                const sTarget = this.destinationPath(fileDest);
-                                this.fs.copyTpl(sOrigin, sTarget, this.config.getAll());
-                              }
+                  if (!((file.includes('service-hdi.yaml') || file.includes('binding-hdi.yaml')) && answers.get('hana') === false)) {
+                    if (!((file.includes('service-uaa.yaml') || file.includes('binding-uaa.yaml')) && answers.get('authentication') === false && answers.get('apiS4HC') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false)) {
+                      if (!((file.includes('service-dest.yaml') || file.includes('binding-dest.yaml')) && answers.get('apiS4HC') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false)) {
+                        if (!((file.includes('-redis.yaml') || file.includes('destinationrule.yaml')) && answers.get('externalSessionManagement') === false)) {
+                          if (!((file === 'mta.yaml' || file === 'xs-security.json') && answers.get('BTPRuntime') !== 'CF')) {
+                            if (!(file === 'xs-security.json' && (answers.get('authentication') === false && answers.get('apiS4HC') === false && answers.get('apiGraph') === false && answers.get('apiDest') === false))) {
+                              const sOrigin = this.templatePath(file);
+                              let fileDest = file;
+                              fileDest = fileDest.replace('_PROJECT_NAME_', answers.get('projectName'));
+                              fileDest = fileDest.replace('dotgitignore', '.gitignore');
+                              fileDest = fileDest.replace('dotdockerignore', '.dockerignore');
+                              const sTarget = this.destinationPath(fileDest);
+                              this.fs.copyTpl(sOrigin, sTarget, this.config.getAll());
                             }
                           }
                         }

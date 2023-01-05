@@ -16,18 +16,6 @@
 <% } -%>
       "destination": "srv"
     },
-<% if(xsjs){ -%>
-    {
-      "source": "^/srvxs/(.*)$",
-<% if(authentication){ -%>
-      "authenticationType": "xsuaa",
-<% } -%>
-<% if(authorization){ -%>
-      "scope": "$XSAPPNAME.User",
-<% } -%>
-      "destination": "srvxs"
-    },
-<% } -%>
     {
       "source": "/(.*)",
 <% if(authentication){ -%>

@@ -12,14 +12,4 @@ data:
         ,"forwardAuthToken": true
 <% } -%>
       }
-<% if(xsjs){ -%>
-      ,
-      {
-        "name": "srvxs",
-        "url": "http://{{ .Values.services.srvxs.name }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.services.srvxs.service.port }}"
-<% if(authentication){ -%>
-        ,"forwardAuthToken": true
-<% } -%>
-      }
-<% } -%>
     ]
