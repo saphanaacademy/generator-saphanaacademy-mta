@@ -8,8 +8,51 @@ module.exports = class extends Generator {
     process.chdir(this.destinationRoot());
   }
 
-  prompting() {
-    return this.prompt([
+  async prompting() {
+    // defaults
+    const answers = {};
+    answers.projectName = "app";
+    answers.newDir = true;
+    answers.BTPRuntime = "CF";
+    answers.namespace = "default";
+    answers.dockerID = "";
+    answers.dockerRepositoryName = "";
+    answers.dockerRepositoryVisibility = "public";
+    answers.dockerRegistrySecretName = "docker-registry-config";
+    answers.dockerServerURL = "https://index.docker.io/v1/";
+    answers.dockerEmailAddress = "";
+    answers.dockerPassword = "";
+    answers.kubeconfig = "";
+    answers.buildCmd = "pack";
+    answers.apiS4HC = false;
+    answers.apiGraph = false;
+    answers.apiGraphURL = "https://<region>.graph.sap/api";
+    answers.apiGraphId = "v1";
+    answers.apiGraphTokenURL = "https://<subdomain>.authentication.<region>.hana.ondemand.com";
+    answers.apiDest = false;
+    answers.apiSACTenant = false;
+    answers.apiSACHost = "https://<tenant>.<region>.hcs.cloud.sap";
+    answers.apiSACTokenURL = "https://<tenant>.authentication.<region>.hana.ondemand.com/oauth/token/alias/<alias>";
+    answers.apiSACAudience = "https://<tenant>.authentication.<region>.hana.ondemand.com";
+    answers.connectivity = false;
+    answers.hana = false;
+    answers.authentication = true;
+    answers.authorization = true;
+    answers.attributes = false;
+    answers.apiGraphSameSubaccount = true;
+    answers.customDomain = "";
+    answers.clusterDomain = "0000000.kyma.ondemand.com";
+    answers.gateway = "kyma-gateway.kyma-system.svc.cluster.local";
+    answers.app2app = false;
+    answers.app2appType = "authorize";
+    answers.app2appName = "";
+    answers.app2appMethod = ["user"];
+    answers.ui = true;
+    answers.externalSessionManagement = false;
+    answers.cicd = false;
+    answers.buildDeploy = false;
+    // prompts
+    const answers1 = await this.prompt([
       {
         type: "input",
         name: "projectName",
@@ -20,20 +63,20 @@ module.exports = class extends Generator {
           }
           return "Please only use alphanumeric characters for the project name.";
         },
-        default: "app"
+        default: answers.projectName
       },
       {
         type: "confirm",
         name: "newDir",
         message: "Would you like to create a new directory for this project?",
-        default: true
+        default: answers.newDir
       },
       {
         type: "list",
         name: "BTPRuntime",
         message: "Which runtime will you be deploying the project to?",
         choices: [{ name: "SAP BTP, Cloud Foundry runtime", value: "CF" }, { name: "SAP BTP, Kyma runtime", value: "Kyma" }],
-        default: "CF"
+        default: answers.BTPRuntime
       },
       {
         when: response => response.BTPRuntime === "Kyma",
@@ -46,7 +89,7 @@ module.exports = class extends Generator {
           }
           return "Your SAP BTP, Kyma runtime namespace can only contain lowercase alphanumeric characters or -.";
         },
-        default: "default"
+        default: answers.namespace
       },
       {
         when: response => response.BTPRuntime === "Kyma",
@@ -59,7 +102,7 @@ module.exports = class extends Generator {
           }
           return "Your Docker ID must be between 4 and 30 characters long and can only contain numbers and lowercase letters.";
         },
-        default: ""
+        default: answers.dockerID
       },
       {
         when: response => response.BTPRuntime === "Kyma",
@@ -72,7 +115,7 @@ module.exports = class extends Generator {
           }
           return "Your Docker repository name must be between 2 and 255 characters long and can only contain numbers, lowercase letters, hyphens (-), and underscores (_).";
         },
-        default: ""
+        default: answers.dockerRepositoryName
       },
       {
         when: response => response.BTPRuntime === "Kyma",
@@ -80,28 +123,28 @@ module.exports = class extends Generator {
         name: "dockerRepositoryVisibility",
         message: "What is your Docker repository visibility?",
         choices: [{ name: "Public (Appears in Docker Hub search results)", value: "public" }, { name: "Private (Only visible to you)", value: "private" }],
-        default: "public"
+        default: answers.dockerRepositoryVisibility
       },
       {
         when: response => response.BTPRuntime === "Kyma" && response.dockerRepositoryVisibility === "private",
         type: "input",
         name: "dockerRegistrySecretName",
         message: "What is the name of your Docker Registry Secret? It will be created in the namespace if you specify your Docker Email Address and Docker Personal Access Token or Password.",
-        default: "docker-registry-config"
+        default: answers.dockerRegistrySecretName
       },
       {
         when: response => response.BTPRuntime === "Kyma" && response.dockerRepositoryVisibility === "private",
         type: "input",
         name: "dockerServerURL",
         message: "What is your Docker Server URL?",
-        default: "https://index.docker.io/v1/"
+        default: answers.dockerServerURL
       },
       {
         when: response => response.BTPRuntime === "Kyma" && response.dockerRepositoryVisibility === "private",
         type: "input",
         name: "dockerEmailAddress",
         message: "What is your Docker Email Address? Leave empty if your Docker Registry Secret already exists in the namespace.",
-        default: ""
+        default: answers.dockerEmailAddress
       },
       {
         when: response => response.BTPRuntime === "Kyma" && response.dockerRepositoryVisibility === "private",
@@ -109,14 +152,14 @@ module.exports = class extends Generator {
         name: "dockerPassword",
         message: "What is your Docker Personal Access Token or Password? Leave empty if your Docker Registry Secret already exists in the namespace.",
         mask: "*",
-        default: ""
+        default: answers.dockerPassword
       },
       {
         when: response => response.BTPRuntime === "Kyma",
         type: "input",
         name: "kubeconfig",
         message: "What is the path of your Kubeconfig file? Leave blank to use the KUBECONFIG environment variable instead.",
-        default: ""
+        default: answers.kubeconfig
       },
       {
         when: response => response.BTPRuntime === "Kyma",
@@ -124,114 +167,114 @@ module.exports = class extends Generator {
         name: "buildCmd",
         message: "How would you like to build container images?",
         choices: [{ name: "Paketo (Cloud Native Buildpacks)", value: "pack" }, { name: "Docker", value: "docker" }, { name: "Podman", value: "podman" }],
-        default: "pack"
+        default: answers.buildCmd
       },
       {
         type: "confirm",
         name: "apiS4HC",
         message: "Would you like to access the SAP S/4HANA Cloud Sales Orders API?",
-        default: false
+        default: answers.apiS4HC
       },
       {
         type: "confirm",
         name: "apiGraph",
         message: "Would you like to use SAP Graph?",
-        default: false
+        default: answers.apiGraph
       },
       {
         when: response => response.apiGraph === true,
         type: "input",
         name: "apiGraphURL",
         message: "What is your SAP Graph URL?",
-        default: "https://<region>.graph.sap/api"
+        default: answers.apiGraphURL
       },
       {
         when: response => response.apiGraph === true,
         type: "input",
         name: "apiGraphId",
         message: "What is your SAP Graph Business Data Graph Identifier?",
-        default: "v1"
+        default: answers.apiGraphId
       },
       {
         when: response => response.apiGraph === true,
         type: "input",
         name: "apiGraphTokenURL",
         message: "What is your SAP Graph Token URL?",
-        default: "https://<subdomain>.authentication.<region>.hana.ondemand.com"
+        default: answers.apiGraphTokenURL
       },
       {
         type: "confirm",
         name: "apiDest",
         message: "Would you like to test the Destination service with SAP Cloud SDK?",
-        default: false
+        default: answers.apiDest
       },
       {
         when: response => response.apiDest === true,
         type: "confirm",
         name: "apiSACTenant",
         message: "Would you like to configure the SAP Analytics Cloud Tenant API?",
-        default: false
+        default: answers.apiSACTenant
       },
       {
         when: response => response.apiSACTenant === true,
         type: "input",
         name: "apiSACHost",
         message: "What is your SAP Analytics Cloud Host?",
-        default: "https://<tenant>.<region>.hcs.cloud.sap"
+        default: answers.apiSACHost
       },
       {
         when: response => response.apiSACTenant === true,
         type: "input",
         name: "apiSACTokenURL",
         message: "What is your SAP Analytics Cloud OAuth2SAML Token URL?",
-        default: "https://<tenant>.authentication.<region>.hana.ondemand.com/oauth/token/alias/<alias>"
+        default: answers.apiSACTokenURL
       },
       {
         when: response => response.apiSACTenant === true,
         type: "input",
         name: "apiSACAudience",
         message: "What is your SAP Analytics Cloud OAuth2SAML Audience?",
-        default: "https://<tenant>.authentication.<region>.hana.ondemand.com"
+        default: answers.apiSACAudience
       },
       {
         when: response => (response.apiGraph === true || response.apiDest === true) && response.BTPRuntime !== "Kyma",
         type: "confirm",
         name: "connectivity",
         message: "Will you be accessing on-premise systems via the Cloud Connector?",
-        default: false
+        default: answers.connectivity
       },
       {
         type: "confirm",
         name: "hana",
         message: "Would you like to use SAP HANA Cloud?",
-        default: false
+        default: answers.hana
       },
       {
         type: "confirm",
         name: "authentication",
         message: "Would you like authentication?",
-        default: true
+        default: answers.authentication
       },
       {
         when: response => response.authentication === true,
         type: "confirm",
         name: "authorization",
         message: "Would you like authorization?",
-        default: true
+        default: answers.authorization
       },
       {
         when: response => response.hana === true && response.authentication === true && response.authorization === true,
         type: "confirm",
         name: "attributes",
         message: "Would you like to use role attributes?",
-        default: false
+        default: answers.attributes
       },
       {
         when: response => response.authentication === true && response.apiGraph === true,
         type: "confirm",
         name: "apiGraphSameSubaccount",
         message: "Will you be deploying to the subaccount of the SAP Graph service instance?",
-        default: true
+        default: answers.apiGraphSameSubaccount
       },
       {
         type: "input",
@@ -246,146 +289,100 @@ module.exports = class extends Generator {
           }
           return "Please only use alphanumeric characters for the custom domain.";
         },
-        default: "",
-      },
+        default: answers.customDomain
+      }
+    ]);
+    if (answers1.BTPRuntime === "Kyma" && answers1.customDomain === "") {
+      let cmd = ["get", "cm", "shoot-info", "-n", "kube-system", "-o", "jsonpath='{.data.domain}'"];
+      if (answers1.kubeconfig !== "") {
+        cmd.push("--kubeconfig", answers1.kubeconfig);
+      }
+      let opt = { "cwd": answers1.destinationPath, "stdio": [process.stdout] };
+      let resGet = this.spawnCommandSync("kubectl", cmd, opt);
+      if (resGet.exitCode === 0) {
+        answers.clusterDomain = resGet.stdout.toString().replace(/'/g, '');
+      }
+    } else {
+      answers.clusterDomain = answers1.customDomain;
+    }
+    const answers2 = await this.prompt([
       {
-        when: response => response.BTPRuntime === "Kyma" && response.customDomain === "",
+        when: answers1.BTPRuntime === "Kyma" && answers1.customDomain === "",
         type: "input",
         name: "clusterDomain",
         message: "What is the cluster domain of your SAP BTP, Kyma runtime?",
-        default: "0000000.kyma.ondemand.com"
+        default: answers.clusterDomain
       },
       {
-        when: response => response.BTPRuntime === "Kyma" && response.customDomain !== "",
+        when: answers1.BTPRuntime === "Kyma" && answers1.customDomain !== "",
         type: "input",
         name: "gateway",
         message: "What is the gateway for the custom domain in your SAP BTP, Kyma runtime?",
-        default: "gateway-name.namespace.svc.cluster.local"
+        default: answers.gateway
       },
       {
-        when: response => response.authentication === true && response.authorization === true,
+        when: answers1.authentication === true && answers1.authorization === true,
         type: "confirm",
         name: "app2app",
         message: "Would you like to configure an App2App authorization scenario?",
-        default: false
+        default: answers.app2app
       },
       {
-        when: response => response.authentication === true && response.authorization === true && response.app2app === true,
+        when: response => answers1.authentication === true && answers1.authorization === true && response.app2app === true,
         type: "list",
         name: "app2appType",
         message: "Which App2App authorization scenario would you like to configure?",
         choices: [{ name: "Authorize another app to use this app", value: "authorize" }, { name: "Access another app from this app", value: "access" }],
-        default: "authorize"
+        default: answers.app2appType
       },
       {
-        when: response => response.authentication === true && response.authorization === true && response.app2app === true,
+        when: response => answers1.authentication === true && answers1.authorization === true && response.app2app === true,
         type: "input",
         name: "app2appName",
         message: "What is the name of the other app (deployed to same BTP subaccount)?",
-        default: ""
+        default: answers.app2appName
       },
       {
-        when: response => response.authentication === true && response.authorization === true && response.app2app === true,
+        when: response => answers1.authentication === true && answers1.authorization === true && response.app2app === true,
         type: "checkbox",
         name: "app2appMethod",
         message: "What type of App2App authentication would you like?",
         choices: [{ name: "Principal Propagation of Business User", value: "user", checked: true }, { name: "Technical Communication", value: "machine" }],
-        default: ["user"]
+        default: answers.app2appMethod
       },
       {
         type: "confirm",
         name: "ui",
         message: "Would you like a UI?",
-        default: true
+        default: answers.ui
       },
       {
-        when: response => response.ui === true && response.BTPRuntime === "Kyma",
+        when: response => response.ui === true && answers1.BTPRuntime === "Kyma",
         type: "confirm",
         name: "externalSessionManagement",
         message: "Would you like to configure external session management (using Redis)?",
-        default: false
+        default: answers.externalSessionManagement
       },
       {
         type: "confirm",
         name: "cicd",
         message: "Would you like to enable Continuous Integration and Delivery (CI/CD)?",
-        default: false
+        default: answers.cicd
       },
       {
         type: "confirm",
         name: "buildDeploy",
         message: "Would you like to build and deploy the project?",
-        default: false
-      },
-    ]).then((answers) => {
-      if (answers.newDir) {
-        this.destinationRoot(`${answers.projectName}`);
+        default: answers.buildDeploy
       }
-      if (answers.BTPRuntime !== "Kyma") {
-        answers.clusterDomain = "";
-        answers.gateway = "";
-        answers.namespace = "";
-        answers.dockerID = "";
-        answers.dockerRepositoryName = "";
-        answers.dockerRepositoryVisibility = "";
-        answers.kubeconfig = "";
-        answers.buildCmd = "";
-        answers.externalSessionManagement = false;
-      } else {
-        if (answers.customDomain !== "") {
-          answers.clusterDomain = answers.customDomain;
-        } else {
-          answers.gateway = "kyma-gateway.kyma-system.svc.cluster.local";
-        }
-      }
-      if (answers.dockerRepositoryVisibility !== "private") {
-        answers.dockerServerURL = "";
-        answers.dockerEmailAddress = "";
-        answers.dockerPassword = "";
-        answers.dockerRegistrySecretName = "";
-      }
-      if (answers.apiGraph === false) {
-        answers.apiGraphURL = "";
-        answers.apiGraphId = "";
-        answers.apiGraphTokenURL = "";
-        answers.apiGraphSameSubaccount = false;
-      }
-      if (answers.apiDest === false) {
-        answers.apiSACTenant = false;
-      }
-      if (answers.apiSACTenant === false) {
-        answers.apiSACHost = "";
-        answers.apiSACTokenURL = "";
-        answers.apiSACAudience = "";
-      }
-      if (answers.authentication === false) {
-        answers.authorization = false;
-        answers.app2app = false;
-        answers.apiGraphSameSubaccount = false;
-      }
-      if (answers.hana === false || answers.authentication === false || answers.authorization === false) {
-        answers.attributes = false;
-      }
-      if (answers.authorization === false) {
-        answers.app2app = false;
-      }
-      if (answers.app2app === false) {
-        answers.app2appType = "";
-        answers.app2appName = "";
-        answers.app2appMethod = "";
-      }
-      if (answers.apiSACTenant === true) {
-        answers.authentication = true;
-      }
-      if (!((answers.apiGraph === true || answers.apiDest === true) && answers.BTPRuntime !== "Kyma")) {
-        answers.connectivity = false;
-      }
-      if (answers.ui === false) {
-        answers.externalSessionManagement = false;
-      }
-      answers.destinationPath = this.destinationPath();
-      this.config.set(answers);
-    });
+    ]);
+    if (answers1.newDir) {
+      this.destinationRoot(`${answers1.projectName}`);
+    }
+    answers.destinationPath = this.destinationPath();
+    this.config.set(answers);
+    this.config.set(answers1);
+    this.config.set(answers2);
   }
 
   writing() {
