@@ -611,6 +611,8 @@ module.exports = class extends Generator {
         this.log(" cf deploy " + mta);
       }
     }
+    answers.delete('dockerEmailAddress');
+    answers.delete('dockerPassword');
   }
 
   end() {
