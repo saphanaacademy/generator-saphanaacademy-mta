@@ -91,10 +91,10 @@ module.exports = class extends Generator {
         name: "projectName",
         message: "What project name would you like?",
         validate: (s) => {
-          if (/^[a-zA-Z0-9_-]*$/g.test(s)) {
+          if (/^[a-zA-Z][a-zA-Z0-9]*$/g.test(s)) {
             return true;
           }
-          return "Please only use alphanumeric characters for the project name.";
+          return "Please start with a letter and only use alphanumeric characters for the project name.";
         },
         default: answers.projectName
       },
@@ -249,7 +249,7 @@ module.exports = class extends Generator {
       {
         type: "confirm",
         name: "apiDest",
-        message: "Would you like to test the Destination service with SAP Cloud SDK?",
+        message: "Would you like to test the SAP Destination service?",
         default: answers.apiDest
       },
       {
@@ -430,6 +430,9 @@ module.exports = class extends Generator {
       this.destinationRoot(`${answersProject.projectName}`);
     }
     answers.destinationPath = this.destinationPath();
+    if (answersAdditional.authentication === false) {
+      answersAdditional.authorization = false;
+    }
     this.config.set(answers);
     this.config.set(answersProject);
     this.config.set(answersRuntime);
@@ -581,59 +584,52 @@ module.exports = class extends Generator {
         let resApply = this.spawnCommandSync("kubectl", cmd, opt);
         if (resApply.exitCode === 0) {
           opt.stdio = [process.stdout];
-          cmd = ["get", "sa", answers.get("projectName") + "-cicd", "-n", answers.get("namespace"), "-o", "jsonpath='{.secrets[0].name}'"];
+          cmd = ["get", "secret/" + answers.get("projectName") + "-cicd", "-n", answers.get("namespace"), "-o", "jsonpath='{.data}'"];
           if (answers.get("kubeconfig") !== "") {
             cmd.push("--kubeconfig", answers.get("kubeconfig"));
           }
-          let resSecret = this.spawnCommandSync("kubectl", cmd, opt);
-          if (resSecret.exitCode === 0) {
-            cmd = ["get", "secret/" + resSecret.stdout.toString().replace(/'/g, ''), "-n", answers.get("namespace"), "-o", "jsonpath='{.data}'"];
-            if (answers.get("kubeconfig") !== "") {
-              cmd.push("--kubeconfig", answers.get("kubeconfig"));
-            }
-            let resSecretDetail = this.spawnCommandSync("kubectl", cmd, opt);
-            let secretDetail = resSecretDetail.stdout.toString();
-            secretDetail = JSON.parse(secretDetail.substring(1).substring(0, secretDetail.length - 2));
-            let fileText = {
-              "apiVersion": "v1",
-              "kind": "Config",
-              "clusters": [
-                {
-                  "name": "cicd-cluster",
-                  "cluster": {
-                    "certificate-authority-data": secretDetail["ca.crt"],
-                    "server": "https://api." + answers.get("clusterDomain")
-                  }
+          let resSecretDetail = this.spawnCommandSync("kubectl", cmd, opt);
+          let secretDetail = resSecretDetail.stdout.toString();
+          secretDetail = JSON.parse(secretDetail.substring(1).substring(0, secretDetail.length - 2));
+          let fileText = {
+            "apiVersion": "v1",
+            "kind": "Config",
+            "clusters": [
+              {
+                "name": "cicd-cluster",
+                "cluster": {
+                  "certificate-authority-data": secretDetail["ca.crt"],
+                  "server": "https://api." + answers.get("clusterDomain")
                 }
-              ],
-              "users": [
-                {
-                  "name": "cicd-user",
-                  "user": {
-                    "token": Buffer.from(secretDetail.token, "base64").toString("utf-8")
-                  }
-                }
-              ],
-              "contexts": [
-                {
-                  "name": "cicd-context",
-                  "context": {
-                    "cluster": "cicd-cluster",
-                    "namespace": answers.get("namespace"),
-                    "user": "cicd-user"
-                  }
-                }
-              ],
-              "current-context": "cicd-context"
-            };
-            fileDest = path.join(this.destinationRoot(), "sa-kubeconfig-cicd.yaml");
-            fs2.writeFile(fileDest, yaml.dump(fileText), 'utf-8', function (err) {
-              if (err) {
-                console.log(err.message);
-                return;
               }
-            });
-          }
+            ],
+            "users": [
+              {
+                "name": "cicd-user",
+                "user": {
+                  "token": Buffer.from(secretDetail.token, "base64").toString("utf-8")
+                }
+              }
+            ],
+            "contexts": [
+              {
+                "name": "cicd-context",
+                "context": {
+                  "cluster": "cicd-cluster",
+                  "namespace": answers.get("namespace"),
+                  "user": "cicd-user"
+                }
+              }
+            ],
+            "current-context": "cicd-context"
+          };
+          fileDest = path.join(this.destinationRoot(), "sa-kubeconfig-cicd.yaml");
+          fs2.writeFile(fileDest, yaml.dump(fileText), 'utf-8', function (err) {
+            if (err) {
+              console.log(err.message);
+              return;
+            }
+          });
         }
       }
       if (answers.get("buildDeploy")) {
