@@ -1,7 +1,7 @@
 {
   "name": "generator-saphanaacademy-mta",
   "displayName": "SAP HANA Academy MTA",
-  "version": "0.0.53",
+  "version": "0.0.54",
   "description": "Yeoman Generator to jump-start Full-Stack Cloud Applications",
   "homepage": "https://www.youtube.com/saphanaacademy",
   "author": {
